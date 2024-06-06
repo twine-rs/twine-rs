@@ -2,5 +2,9 @@
 name = "twine-rs"
 version = "0.1.0"
 edition = "2021"
+license = "MPL-2.0"
+authors = ["Jake Swensen <jake@swensen.io>"]
+description = "Tools for working with the Thread networking protocol"
+repository = "https://github.com/twine-rs/twine-rs"
 
 [dependencies]
