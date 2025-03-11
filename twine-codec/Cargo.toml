@@ -1,0 +1,19 @@
+[package]
+name = "twine-codec"
+version.workspace = true
+authors.workspace = true
+description.workspace = true
+edition.workspace = true
+
+[features]
+std = []
+alloc = []
+
+[dependencies]
+bitflags = "2.9.0"
+bitfield = "0.19"
+thiserror.workspace = true
+typed-builder.workspace = true
+num_enum = { version = "0.7.3", default-features = false }
+bytes = { version = "1.10.1", default-features = false }
+heapless = "0.8.0"

@@ -1,0 +1,1 @@
+//! Types and traits specific to the OpenThread implementation.
