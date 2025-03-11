@@ -7,5 +7,6 @@ edition.workspace = true
 
 [dependencies]
 async-trait.workspace = true
-twine-codec.workspace = true
+thiserror.workspace = true
+twine-codec = { path = "../twine-codec", features = ["alloc"] }
 zbus.workspace = true

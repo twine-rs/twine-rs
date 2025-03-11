@@ -1,17 +1,34 @@
-use std::time::Duration;
+use std::{str::FromStr, time::Duration};
 
 use async_trait::async_trait;
 use twine_codec::{
-    commissioner::{JoinerPskd, ProvisioningUrl, ThreadVendorInfo},
-    dataset::{ChannelMask, DatasetTlvs, ExtendedPanId, NetworkKey, NetworkName, PanId, Pskc},
+    commissioner::{JoinerPskd, SteeringData},
+    dataset::{
+        ExtendedPanId, NetworkKey, NetworkName, OperationalDataset, OperationalDatasetTlvs, Pskc,
+    },
     link::{ActiveScanResult, EnergyScanResult},
+    radio::{Channel, ChannelMask, PanId},
+    thread::DeviceRole,
 };
 use zbus::{proxy, Connection, Result};
 
-use super::OtbrClient;
+use super::{error::OtbrClientError, OtbrClient, OtbrClientResult};
 
 /// Format of the active scan result entry over D-Bus.
-type DbusActiveScanResultEntry = (u64, String, u64, Vec<u8>, u16, u8, i16, u8, u8, bool, bool);
+type DbusActiveScanResultEntry = (
+    u64,
+    String,
+    u64,
+    Vec<u8>,
+    u16,
+    u16,
+    u8,
+    i16,
+    u8,
+    u8,
+    bool,
+    bool,
+);
 
 /// Format of the energy scan result entry over D-Bus.
 type DbusEnergyScanEntry = (u8, u8);
@@ -71,6 +88,10 @@ impl<'p> OtbrDbusClient<'p> {
 
 #[async_trait]
 impl<'p> OtbrClient for OtbrDbusClient<'p> {
+    async fn active_dataset_tlvs(&self) -> OtbrClientResult<OperationalDatasetTlvs> {
+        Ok(self.proxy.active_dataset_tlvs().await?.try_into()?)
+    }
+
     async fn attach(
         &self,
         key: Option<NetworkKey>,
@@ -78,84 +99,133 @@ impl<'p> OtbrClient for OtbrDbusClient<'p> {
         name: NetworkName,
         xpan: Option<ExtendedPanId>,
         pskc: Option<Pskc>,
-        channel_mask: Option<ChannelMask>,
-    ) -> Result<()> {
+        channel_mask: ChannelMask,
+    ) -> OtbrClientResult<()> {
+        let key = match key {
+            Some(k) => k.into(),
+            None => Vec::<u8>::new(),
+        };
+
+        let pan = match pan {
+            Some(p) => p.into(),
+            None => u16::MAX,
+        };
+
+        let xpan = match xpan {
+            Some(x) => x.into(),
+            None => u64::MAX,
+        };
+
+        let pskc = match pskc {
+            Some(p) => p.into(),
+            None => u128::MAX,
+        }
+        .to_be_bytes();
+
+        let name: String = name.to_string();
+
+        let channel_mask = channel_mask.mask();
+
+        self.proxy
+            .attach(&key, pan, &name, xpan, &pskc, channel_mask)
+            .await?;
+
+        Ok(())
+    }
+
+    async fn attach_all_nodes_to(
+        &self,
+        dataset: OperationalDatasetTlvs,
+    ) -> OtbrClientResult<Option<Duration>> {
         todo!()
     }
 
-    async fn attach_all_nodes_to(&self, dataset: DatasetTlvs) -> Result<Option<Duration>> {
-        todo!()
+    async fn detach(&self) -> OtbrClientResult<()> {
+        self.proxy.detach().await?;
+        Ok(())
     }
 
-    async fn detach(&self) -> Result<()> {
-        self.detach().await
+    async fn device_role(&self) -> OtbrClientResult<DeviceRole> {
+        let role = self.proxy.device_role().await?;
+        Ok(DeviceRole::from_str(&role)?)
     }
 
-    async fn energy_scan(&self, duration: Duration) -> Result<Vec<EnergyScanResult>> {
+    async fn energy_scan(&self, duration: Duration) -> OtbrClientResult<Vec<EnergyScanResult>> {
         let millis = duration.as_millis() as u32;
         let result = self.proxy.energy_scan(millis).await?;
 
         Ok(result
             .into_iter()
-            .map(|entry| {
+            .map(|item| {
                 EnergyScanResult::builder()
-                    .channel(entry.0)
-                    .rssi(entry.1 as i8)
+                    .channel(item.0)
+                    .rssi(item.1 as i8)
                     .build()
             })
             .collect())
     }
 
-    async fn factory_reset(&self) -> Result<()> {
-        self.factory_reset().await
+    async fn factory_reset(&self) -> OtbrClientResult<()> {
+        self.proxy.factory_reset().await?;
+        Ok(())
     }
 
-    async fn joiner_start(
-        &self,
-        pskd: JoinerPskd,
-        url: ProvisioningUrl,
-        vendor_info: ThreadVendorInfo,
-    ) -> Result<()> {
-        todo!()
+    // async fn joiner_start(
+    //     &self,
+    //     pskd: JoinerPskd,
+    //     url: ProvisioningUrl,
+    //     vendor_info: ThreadVendorInfo,
+    // ) -> OtbrClientResult<()> {
+    //     todo!()
+    // }
+
+    async fn joiner_stop(&self) -> OtbrClientResult<()> {
+        self.proxy.joiner_stop().await?;
+        Ok(())
     }
 
-    async fn joiner_stop(&self) -> Result<()> {
-        self.joiner_stop().await
+    async fn leave_network(&self) -> OtbrClientResult<()> {
+        self.proxy.leave_network().await?;
+        Ok(())
     }
 
-    async fn leave_network(&self) -> Result<()> {
-        self.leave_network().await
+    async fn permit_unsecure_join(&self, port: u16, duration: Duration) -> OtbrClientResult<()> {
+        self.proxy
+            .permit_unsecure_join(port, duration.as_millis() as u32)
+            .await?;
+        Ok(())
     }
 
-    async fn permit_unsecure_join(&self, port: u16, duration: Duration) -> Result<()> {
-        todo!()
+    async fn reset(&self) -> OtbrClientResult<()> {
+        self.proxy.reset().await?;
+        Ok(())
     }
 
-    async fn reset(&self) -> Result<()> {
-        todo!()
-    }
-
-    async fn scan(&self) -> Result<Vec<ActiveScanResult>> {
-        let result: Vec<DbusActiveScanResultEntry> = self.proxy.scan().await?;
-
-        Ok(result
+    async fn scan(&self) -> OtbrClientResult<Vec<ActiveScanResult>> {
+        self.proxy
+            .scan()
+            .await?
             .into_iter()
-            .map(|entry| {
-                ActiveScanResult::builder()
-                    .extended_address(entry.0)
-                    .network_data(entry.1)
-                    .xpan_id(entry.2)
-                    .steering_data(entry.3)
-                    .pan_id(entry.4)
-                    .channel(entry.5)
-                    .rssi(entry.6)
-                    .lqi(entry.7)
-                    .version(entry.8)
-                    .is_native(entry.9)
-                    .is_joiner(entry.10)
-                    .build()
+            .map(|item| {
+                let network_name = NetworkName::from_str(&item.1)?;
+                let steering_data = item.3.try_into()?;
+
+                Ok(ActiveScanResult::builder()
+                    .extended_address(item.0)
+                    .network_name(network_name)
+                    .xpan_id(item.2.into())
+                    .steering_data(steering_data)
+                    .pan_id(item.4.into())
+                    .joiner_udp_port(item.5)
+                    .channel(item.6)
+                    .rssi(item.7)
+                    .lqi(item.8)
+                    .version(item.9)
+                    .is_native(item.10)
+                    .is_joiner(item.11)
+                    .build())
             })
-            .collect())
+            .collect()
     }
 }
 
@@ -166,7 +236,9 @@ impl<'p> OtbrClient for OtbrDbusClient<'p> {
 )]
 pub trait BorderRouter {
     fn scan(&self) -> zbus::Result<Vec<DbusActiveScanResultEntry>>;
+
     fn energy_scan(&self, scanduration: u32) -> zbus::Result<Vec<DbusEnergyScanEntry>>;
+
     fn attach(
         &self,
         networkkey: &[u8],
@@ -176,7 +248,9 @@ pub trait BorderRouter {
         pskc: &[u8],
         channel_mask: u32,
     ) -> zbus::Result<()>;
+
     fn attach_all_nodes_to(&self, dataset: &[u8]) -> zbus::Result<i64>;
+
     fn detach(&self) -> zbus::Result<()>;
 
     fn add_external_route(&self, prefix: &(&(&[u8], u8), u16, u8, bool, bool)) -> zbus::Result<()>;
@@ -207,7 +281,7 @@ pub trait BorderRouter {
     fn get_properties(&self, properties: &[&str]) -> zbus::Result<()>;
 
     /// JoinerStart method
-    fn joiner_start1(
+    fn joiner_start(
         &self,
         pskd: &str,
         provision_url: &str,
