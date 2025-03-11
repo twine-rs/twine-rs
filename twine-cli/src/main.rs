@@ -1,20 +1,30 @@
-use std::net::{SocketAddr, TcpListener};
-use socket2::{Socket, Domain, Type, Protocol};
-use log;
+use clap::{Parser, Subcommand};
+use tokio;
+use zbus::Result;
 
-fn check_af_inet6() {
-    let socket = match Socket::new(Domain::IPV6, Type::DGRAM, Some(Protocol::ICMPV6)) {
-        Ok(s) => s,
-        Err(e) => {
-            log::error!("failed to create socket: {e:?}");
-            return;
-        }
-    };
+mod otbr;
 
-    log::info!("socket: {:?}", socket);
+#[derive(Parser)]
+struct Cli {
+    #[command(subcommand)]
+    cmd: Command,
 }
 
-fn main() {
-    env_logger::init();
-    check_af_inet6();
+#[derive(Subcommand)]
+enum Command {
+    /// Interact with the OpenThread Border Router over D-Bus
+    Dbus(otbr::dbus::Arguments),
+}
+
+#[tokio::main]
+async fn main() -> Result<()> {
+    let cli = Cli::parse();
+
+    match cli.cmd {
+        Command::Dbus(args) => {
+            otbr::dbus::run(args).await;
+        }
+    }
+
+    Ok(())
 }

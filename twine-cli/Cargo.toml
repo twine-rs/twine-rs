@@ -6,7 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-env_logger = "0.10.0"
-log = "0.4.20"
-nix = { version = "0.27.1", features = ["net"] }
-socket2 = "0.5.4"
+clap = { version = "4.4.7", features = ["derive"] }
+tokio.workspace = true
+zbus.workspace = true
+otbr-client = { path = "../otbr-client" }
