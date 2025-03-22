@@ -1,0 +1,17 @@
+[package]
+name = "twine-network-mgr"
+version.workspace = true
+authors.workspace = true
+description.workspace = true
+edition.workspace = true
+
+[dependencies]
+actix = "0.13.5"
+otbr-client ={ path = "../otbr-client" }
+thiserror.workspace = true
+typed-builder.workspace = true
+twine-codec = { path = "../twine-codec", features = ["alloc"] }
+
+
+[[bin]]
+name = "netman"

@@ -2,7 +2,7 @@
 resolver = "2"
 
 members = [
-    "twine-cli", "twine-codec", "otbr-client",
+    "twine-cli", "twine-codec", "otbr-client", "twine-network-mgr",
 ]
 
 [workspace.package]
