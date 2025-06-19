@@ -1,0 +1,9 @@
+---
+source: twine-tlv/src/collection.rs
+expression: tlv_data.unwrap()
+---
+TestTlvDataTypeZero(
+    [
+        170,
+    ],
+)
