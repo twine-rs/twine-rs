@@ -1,0 +1,5 @@
+---
+source: twine-tlv/src/collection.rs
+expression: "format!(\"{:02X?}\", tlv_collection.buffer)"
+---
+[02, FF, 00, 02, AA, AA, 01, 04, AA, BB, CC, DD, 03, 03, AA, BB, CC, 00, 00, 00, 00, 00]
