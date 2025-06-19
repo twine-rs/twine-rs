@@ -3,6 +3,8 @@ resolver = "2"
 
 members = [
     "twine-cli",
+    "twine-macros",
+    "twine-tlv",
 ]
 
 [workspace.package]
@@ -10,3 +12,10 @@ version = "0.1.0"
 authors = ["Jake Swensen"]
 description = "Tools for working with Thread"
 edition = "2021"
+
+[workspace.dependencies]
+bytes = { version = "1.10.1", default-features = false }
+env_logger = "0.11.8"
+insta = "1.43.1"
+log = "0.4.27"
+thiserror = { version = "2.0.12", default-features = false }
