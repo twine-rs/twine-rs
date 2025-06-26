@@ -1,0 +1,11 @@
+---
+source: twine-tlv/src/collection.rs
+expression: bytes
+---
+[
+    0,
+    3,
+    0,
+    0,
+    22,
+]

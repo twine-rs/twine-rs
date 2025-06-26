@@ -1,0 +1,16 @@
+[package]
+name = "twine-tlv"
+version.workspace = true
+authors.workspace = true
+description = "A library for working with a collection of TLVs"
+edition.workspace = true
+
+[dependencies]
+bytes.workspace = true
+log.workspace = true
+thiserror.workspace = true
+
+[dev-dependencies]
+env_logger.workspace = true
+insta.workspace = true
+twine-macros = { path = "../twine-macros" }
