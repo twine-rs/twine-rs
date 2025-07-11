@@ -1,0 +1,12 @@
+---
+source: twine-tlv/src/collection.rs
+expression: tlv_data.unwrap()
+---
+TestTlvData(
+    [
+        170,
+        187,
+        204,
+        221,
+    ],
+)
