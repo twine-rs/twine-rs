@@ -40,6 +40,23 @@ impl<const CAPACITY: usize> TlvCollection<CAPACITY> {
         Self::find_buffer_len(self.buffer)
     }
 
+    /// Returns the number of TLV items in the collection.
+    pub fn count(&self) -> usize {
+        let mut count = 0;
+        let mut cursor = 0;
+
+        while cursor < self.len() {
+            if Self::peek_tlv_len(&self.buffer[cursor..]) == 0 {
+                break;
+            } else {
+                count += 1;
+                cursor += Self::next_tlv_position(&self.buffer[cursor..]);
+            }
+        }
+
+        count
+    }
+
     /// Search the buffer and determine the length of all TLV data
     fn find_buffer_len(buffer: impl AsRef<[u8]>) -> usize {
         let buffer = buffer.as_ref();
@@ -501,5 +518,19 @@ mod tests {
 
         let res = tlv_collection.push(new_tlv);
         assert_eq!(res, Err(TwineTlvError::BufferMaxLength));
+    }
+
+    #[test]
+    fn success_count_tlvs() {
+        const CAPACITY: usize = 16;
+
+        let tlv_data = [
+            0x02, 0x02, 0xAA, 0xAA, 0x01, 0x04, 0xAA, 0xBB, 0xCC, 0xDD, 0x03, 0x02, 0xBB, 0xBB,
+            0x00, 0x00,
+        ];
+        let tlv_collection = TlvCollection::<CAPACITY>::new_from_static(tlv_data);
+
+        let count = tlv_collection.count();
+        assert_eq!(count, 3);
     }
 }
