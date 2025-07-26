@@ -25,7 +25,7 @@
 
 #![no_std]
 
-#[cfg(test)]
+#[cfg(any(test, feature = "alloc"))]
 extern crate alloc;
 
 use bytes::{Buf, BufMut};
