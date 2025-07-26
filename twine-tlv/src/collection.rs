@@ -7,6 +7,11 @@
 
 use core::ops::Range;
 
+#[cfg(any(test, feature = "alloc"))]
+use alloc::{
+    collections::{BTreeMap, BTreeSet},
+    vec::Vec,
+};
 use bytes::Buf;
 
 use crate::{error::TwineTlvError, traits::TryEncodeTlv, GetTlvLength};
@@ -203,6 +208,60 @@ impl<const CAPACITY: usize> TlvCollection<CAPACITY> {
         }
     }
 
+    #[cfg(any(test, feature = "alloc"))]
+    pub fn tlv_diff_list(&self, other: &Self) -> Vec<u8> {
+        self.tlv_diff_list_with_data(other)
+            .iter()
+            .map(|(t, _, _)| *t)
+            .collect()
+    }
+
+    /// Generate a list of TLV differences between this collection and another.
+    ///
+    /// Returns a vector of TLV types and the data for `self` and `other` when a difference is found.
+    #[cfg(any(test, feature = "alloc"))]
+    pub fn tlv_diff_list_with_data(
+        &self,
+        other: &Self,
+    ) -> Vec<(u8, Option<Vec<u8>>, Option<Vec<u8>>)> {
+        let mut diff = Vec::new();
+
+        let mut map_self = BTreeMap::new();
+        for tlv_bytes in self.into_iter() {
+            let t = tlv_bytes[0];
+            map_self.insert(t, tlv_bytes.to_vec());
+        }
+
+        let mut map_other = BTreeMap::new();
+        for tlv_bytes in other.into_iter() {
+            let t = tlv_bytes[0];
+            map_other.insert(t, tlv_bytes.to_vec());
+        }
+
+        // Collect all unique TLV types from both collections
+        let mut all = BTreeSet::new();
+        for &t in map_self.keys() {
+            all.insert(t);
+        }
+
+        for &t in map_other.keys() {
+            all.insert(t);
+        }
+
+        // For each TLV type, compare the presence and payload in both collections
+        for t in all {
+            let self_data = map_self.get(&t).cloned();
+            let other_data = map_other.get(&t).cloned();
+
+            // Only create a new entry when there is a difference between the presence or content
+            if self_data != other_data {
+                diff.push((t, self_data, other_data));
+            }
+        }
+
+        diff
+    }
+
     /// Attempt to append a TLV to the end of the collection.
     pub fn push<T>(&mut self, tlv: T) -> Result<usize, TwineTlvError>
     where
@@ -247,6 +306,42 @@ impl<const CAPACITY: usize> TlvCollection<CAPACITY> {
         }
 
         Ok(())
+    }
+}
+
+impl<'a, const CAPACITY: usize> IntoIterator for &'a TlvCollection<CAPACITY> {
+    type Item = &'a [u8];
+    type IntoIter = TlvCollectionIter<'a, CAPACITY>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        TlvCollectionIter {
+            collection: &self,
+            cursor: 0,
+        }
+    }
+}
+
+pub struct TlvCollectionIter<'a, const CAPACITY: usize> {
+    collection: &'a TlvCollection<CAPACITY>,
+    cursor: usize,
+}
+
+impl<'a, const CAPACITY: usize> Iterator for TlvCollectionIter<'a, CAPACITY> {
+    type Item = &'a [u8];
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.cursor >= CAPACITY {
+            return None;
+        }
+
+        let buffer = &self.collection.buffer[self.cursor..];
+
+        if let Some(bytes) = self.collection.find_tlv(buffer[0]) {
+            self.cursor += bytes.len();
+            Some(bytes)
+        } else {
+            None
+        }
     }
 }
 
@@ -556,5 +651,109 @@ mod tests {
         assert_eq!(tlv_collection.len(), 6);
         assert_eq!(tlv_collection.count(), 1);
         insta::assert_snapshot!(format!("{:02X?}", tlv_collection.buffer));
+    }
+
+    #[test]
+    fn success_diff_tlvs() {
+        log_init();
+        const CAPACITY: usize = 16;
+
+        let tlv_data = [
+            0x02, 0x02, 0xAA, 0xAA, 0x01, 0x04, 0xAA, 0xBB, 0xCC, 0xDD, 0x03, 0x02, 0xBB, 0xBB,
+            0x00, 0x00,
+        ];
+        let tlv_collection = TlvCollection::<CAPACITY>::new_from_static(tlv_data);
+
+        let other_tlv_data = [
+            0x02, 0x02, 0xAA, 0xAA, 0x01, 0x04, 0xAA, 0xBB, 0xCC, 0xDD, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00,
+        ];
+        let other_tlv_collection = TlvCollection::<CAPACITY>::new_from_static(other_tlv_data);
+
+        let mut diff_list = tlv_collection.tlv_diff_list_with_data(&other_tlv_collection);
+        assert_eq!(diff_list.len(), 1);
+        assert_eq!(
+            diff_list.pop(),
+            Some((0x03, Some(vec![0x03, 0x02, 0xBB, 0xBB]), None))
+        );
+    }
+
+    #[test]
+    fn success_diff_tlvs_out_of_order() {
+        log_init();
+        const CAPACITY: usize = 16;
+
+        let tlv_data = [
+            0x01, 0x04, 0xAA, 0xBB, 0xCC, 0xDD, 0x03, 0x02, 0xBB, 0xBB, 0x02, 0x02, 0xAA, 0xAA,
+            0x00, 0x00,
+        ];
+        let tlv_collection = TlvCollection::<CAPACITY>::new_from_static(tlv_data);
+
+        let other_tlv_data = [
+            0x02, 0x02, 0xAA, 0xAA, 0x01, 0x04, 0xAA, 0xBB, 0xCC, 0xDD, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00,
+        ];
+        let other_tlv_collection = TlvCollection::<CAPACITY>::new_from_static(other_tlv_data);
+
+        let mut diff_list = tlv_collection.tlv_diff_list_with_data(&other_tlv_collection);
+        assert_eq!(diff_list.len(), 1);
+        assert_eq!(
+            diff_list.pop(),
+            Some((0x03, Some(vec![0x03, 0x02, 0xBB, 0xBB]), None))
+        );
+    }
+
+    #[test]
+    fn success_diff_tlvs_other_has_more_tlvs() {
+        const CAPACITY: usize = 16;
+
+        let tlv_data = [
+            0x02, 0x02, 0xAA, 0xAA, 0x01, 0x04, 0xAA, 0xBB, 0xCC, 0xDD, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00,
+        ];
+        let tlv_collection = TlvCollection::<CAPACITY>::new_from_static(tlv_data);
+
+        let other_tlv_data = [
+            0x02, 0x02, 0xAA, 0xAA, 0x01, 0x04, 0xAA, 0xBB, 0xCC, 0xDD, 0x03, 0x02, 0xBB, 0xBB,
+            0x00, 0x00,
+        ];
+        let other_tlv_collection = TlvCollection::<CAPACITY>::new_from_static(other_tlv_data);
+
+        let mut diff_list = tlv_collection.tlv_diff_list_with_data(&other_tlv_collection);
+        assert_eq!(diff_list.len(), 1);
+        assert_eq!(
+            diff_list.pop(),
+            Some((0x03, None, Some(vec![0x03, 0x02, 0xBB, 0xBB])))
+        );
+    }
+
+    #[test]
+    fn success_diff_tlvs_other_has_different_data() {
+        log_init();
+        const CAPACITY: usize = 16;
+
+        let tlv_data = [
+            0x02, 0x02, 0xDD, 0xDD, 0x01, 0x04, 0xAA, 0xBB, 0xCC, 0xDD, 0x03, 0x02, 0xBB, 0xBB,
+            0x00, 0x00,
+        ];
+        let tlv_collection = TlvCollection::<CAPACITY>::new_from_static(tlv_data);
+
+        let other_tlv_data = [
+            0x02, 0x02, 0xAA, 0xAA, 0x01, 0x04, 0xAA, 0xBB, 0xCC, 0xDD, 0x03, 0x02, 0xBB, 0xBB,
+            0x00, 0x00,
+        ];
+        let other_tlv_collection = TlvCollection::<CAPACITY>::new_from_static(other_tlv_data);
+
+        let mut diff_list = tlv_collection.tlv_diff_list_with_data(&other_tlv_collection);
+        log::debug!("Diff List: {:?}", diff_list);
+        assert_eq!(diff_list.len(), 1);
+        assert_eq!(
+            diff_list.pop(),
+            Some((
+                0x02,
+                Some(vec![0x02, 0x02, 0xDD, 0xDD]),
+                Some(vec![0x02, 0x02, 0xAA, 0xAA])
+            ))
+        );
     }
 }
