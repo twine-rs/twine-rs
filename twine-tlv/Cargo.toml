@@ -5,8 +5,13 @@ authors.workspace = true
 description = "A library for working with a collection of TLVs"
 edition.workspace = true
 
+[features]
+std = []
+alloc = []
+
 [dependencies]
 bytes.workspace = true
+faster-hex = { git = "https://github.com/jdswensen/faster-hex.git", default-features = false, rev = "9e7511933beacf7b37da63e733750a4c3baa405c" }
 log.workspace = true
 thiserror.workspace = true
 

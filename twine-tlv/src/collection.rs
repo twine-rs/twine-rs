@@ -35,6 +35,17 @@ impl<const CAPACITY: usize> TlvCollection<CAPACITY> {
         Self { buffer }
     }
 
+    /// Creates a new [`TlvCollection`] from a &[`str`].
+    #[cfg(any(test, feature = "alloc"))]
+    pub fn new_from_str(collection: &str) -> Result<Self, TwineTlvError> {
+        let mut buffer = [0_u8; CAPACITY];
+        let src_len = collection.as_bytes().len();
+        faster_hex::hex_decode(collection.as_bytes(), &mut buffer[..src_len / 2])
+            .map_err(TwineTlvError::HexError)?;
+
+        Ok(Self { buffer })
+    }
+
     /// Returns the length of the TLV data in the buffer.
     pub fn len(&self) -> usize {
         Self::find_buffer_len(self.buffer)
@@ -532,5 +543,18 @@ mod tests {
 
         let count = tlv_collection.count();
         assert_eq!(count, 3);
+    }
+
+    #[test]
+    fn success_from_str() {
+        log_init();
+        const CAPACITY: usize = 32;
+
+        let tlv_str = "0104AABBCCDD";
+        let tlv_collection = TlvCollection::<CAPACITY>::new_from_str(tlv_str).unwrap();
+
+        assert_eq!(tlv_collection.len(), 6);
+        assert_eq!(tlv_collection.count(), 1);
+        insta::assert_snapshot!(format!("{:02X?}", tlv_collection.buffer));
     }
 }
