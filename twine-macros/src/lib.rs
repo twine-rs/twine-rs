@@ -16,6 +16,8 @@ struct TlvEntry {
     variant: Option<Ident>,
     tlv_type: u8,
     tlv_length: Option<usize>,
+    #[darling(default)]
+    derive_inner: bool,
 }
 
 #[proc_macro_derive(Tlv, attributes(tlv))]
@@ -46,6 +48,20 @@ pub fn derive_tlv(input: TokenStream) -> TokenStream {
 
     let has_variants = entries.iter().any(|e| e.variant.is_some());
 
+    let inner_ty = if let syn::Data::Struct(data) = &input.data {
+        if let syn::Fields::Unnamed(fields) = &data.fields {
+            if fields.unnamed.len() == 1 {
+                Some(&fields.unnamed.first().unwrap().ty)
+            } else {
+                None
+            }
+        } else {
+            None
+        }
+    } else {
+        None
+    };
+
     if let Some(first) = entries.first() {
         tokens.extend(impl_all(
             original_ident,
@@ -56,6 +72,24 @@ pub fn derive_tlv(input: TokenStream) -> TokenStream {
             !has_variants,
         ));
         tokens.extend(impl_refs(original_ident, generics, first.tlv_length));
+
+        if first.derive_inner {
+            if let Some(inner_ty) = inner_ty {
+                tokens.extend(quote! {
+                    impl ::twine_tlv::TryEncodeTlvValue for #original_ident {
+                        fn try_encode_tlv_value(&self, buffer: &mut [u8]) -> Result<usize, ::twine_tlv::TwineTlvError> {
+                            self.0.try_encode_tlv_value(buffer)
+                        }
+                    }
+                    impl ::twine_tlv::DecodeTlvValueUnchecked for #original_ident {
+                        fn decode_tlv_value_unchecked(buffer: impl AsRef<[u8]>) -> Self {
+                            let inner: #inner_ty = ::twine_tlv::DecodeTlvValueUnchecked::decode_tlv_value_unchecked(buffer);
+                            #original_ident(inner)
+                        }
+                    }
+                });
+            }
+        }
     }
 
     if has_variants {
@@ -64,8 +98,7 @@ pub fn derive_tlv(input: TokenStream) -> TokenStream {
                 .variant
                 .clone()
                 .expect("Each #[tlv(...)] must include `variant` if there are multiple");
-            let wrapper_ident =
-                Ident::new(&format!("{}{}", variant, original_ident), variant.span());
+            let wrapper_ident = Ident::new(&format!("{variant}{original_ident}"), variant.span());
 
             tokens.extend(quote! {
                 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
@@ -83,25 +116,44 @@ pub fn derive_tlv(input: TokenStream) -> TokenStream {
                     }
                 }
 
-                impl #generics std::ops::Deref for #wrapper_ident #generics {
+                impl #generics core::ops::Deref for #wrapper_ident #generics {
                     type Target = #original_ident #generics;
                     fn deref(&self) -> &Self::Target {
                         &self.0
                     }
                 }
-
-                impl #impl_generics TryEncodeTlvValue for #wrapper_ident #ty_generics #where_clause {
-                    fn try_encode_tlv_value(&self, buffer: &mut [u8]) -> Result<usize, TwineTlvError> {
-                        self.0.try_encode_tlv_value(buffer)
-                    }
-                }
-
-                impl #impl_generics DecodeTlvValueUnchecked for #wrapper_ident #ty_generics #where_clause {
-                    fn decode_tlv_value_unchecked(buffer: impl AsRef<[u8]>) -> Self {
-                        #wrapper_ident(<#original_ident #ty_generics>::decode_tlv_value_unchecked(buffer))
-                    }
-                }
             });
+
+            if entry.derive_inner {
+                if let Some(inner_ty) = inner_ty {
+                    tokens.extend(quote! {
+                        impl #impl_generics ::twine_tlv::TryEncodeTlvValue for #wrapper_ident #ty_generics #where_clause {
+                            fn try_encode_tlv_value(&self, buffer: &mut [u8]) -> Result<usize, ::twine_tlv::TwineTlvError> {
+                                self.0.0.try_encode_tlv_value(buffer)
+                            }
+                        }
+                        impl #impl_generics ::twine_tlv::DecodeTlvValueUnchecked for #wrapper_ident #ty_generics #where_clause {
+                            fn decode_tlv_value_unchecked(buffer: impl AsRef<[u8]>) -> Self {
+                                let inner: #inner_ty = ::twine_tlv::DecodeTlvValueUnchecked::decode_tlv_value_unchecked(buffer);
+                                #wrapper_ident(#original_ident(inner))
+                            }
+                        }
+                    });
+                }
+            } else {
+                tokens.extend(quote! {
+                    impl #impl_generics ::twine_tlv::TryEncodeTlvValue for #wrapper_ident #ty_generics #where_clause {
+                        fn try_encode_tlv_value(&self, buffer: &mut [u8]) -> Result<usize, ::twine_tlv::TwineTlvError> {
+                            self.0.try_encode_tlv_value(buffer)
+                        }
+                    }
+                    impl #impl_generics ::twine_tlv::DecodeTlvValueUnchecked for #wrapper_ident #ty_generics #where_clause {
+                        fn decode_tlv_value_unchecked(buffer: impl AsRef<[u8]>) -> Self {
+                            #wrapper_ident(<#original_ident #ty_generics>::decode_tlv_value_unchecked(buffer))
+                        }
+                    }
+                });
+            }
 
             tokens.extend(impl_all(
                 &wrapper_ident,
