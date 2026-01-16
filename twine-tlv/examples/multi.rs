@@ -7,7 +7,7 @@ use twine_tlv::{
     TwineTlvError,
 };
 
-#[derive(Tlv, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Tlv)]
 #[tlv(variant = "Variant1", tlv_type = 0x03, tlv_length = 3)]
 #[tlv(variant = "Variant2", tlv_type = 0x21, tlv_length = 3)]
 struct ExampleData {
@@ -37,41 +37,25 @@ impl TryEncodeTlvValue for ExampleData {
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Tlv)]
-#[tlv(tlv_type = 0x02, tlv_length = 4)]
-struct MoreExampleData {
-    baz: u32,
-}
-
-impl DecodeTlvValueUnchecked for MoreExampleData {
-    fn decode_tlv_value_unchecked(buffer: impl AsRef<[u8]>) -> Self {
-        let mut buffer = buffer.as_ref();
-        let baz = buffer.get_u32();
-        MoreExampleData { baz }
-    }
-}
-
-impl TryEncodeTlvValue for MoreExampleData {
-    fn try_encode_tlv_value(
-        &self,
-        buffer: &mut [u8],
-    ) -> Result<usize, twine_tlv::error::TwineTlvError> {
-        let mut buffer = buffer.as_mut();
-        buffer.put_u32(self.baz);
-        Ok(self.tlv_len())
-    }
-}
+#[tlv(tlv_type = 0x02, tlv_length = 4, derive_inner)]
+struct MoreExampleData(u32);
 
 fn main() {
     let data0 = ExampleData {
         foo: 0x2A,
         bar: 0xDEAD,
     };
-    let data1 = MoreExampleData { baz: 0xDAFF_0D11 };
+    let data1 = MoreExampleData(0xDAFF_0D11);
     let mut collection = TlvCollection::<16>::default();
 
     collection.push(Variant2ExampleData(data0)).unwrap();
     collection.push(data1).unwrap();
     println!("Push data:\t\t{:02X?}", collection);
+
+    // Example of transforming the data back to the inner type
+    println!("Varient2ExampleData:\t{:02X?}", data0);
+    let transform_data0: ExampleData = data0.into();
+    println!("Transform ExampleData:\t{:02X?}", transform_data0);
 
     let data2 = Variant2ExampleData(ExampleData {
         foo: 0xFF,
@@ -82,4 +66,7 @@ fn main() {
 
     collection.remove::<Variant2ExampleData>();
     println!("Remove ExampleData:\t{:02X?}", collection);
+
+    let decoded = collection.decode_type_unchecked::<MoreExampleData>();
+    println!("MoreExampleData:\t{:04x?}", decoded);
 }

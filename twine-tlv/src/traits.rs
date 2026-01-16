@@ -86,6 +86,39 @@ pub trait DecodeTlvValueUnchecked {
         Self: Sized;
 }
 
+impl DecodeTlvValueUnchecked for u8 {
+    fn decode_tlv_value_unchecked(buffer: impl AsRef<[u8]>) -> Self {
+        let mut buffer = buffer.as_ref();
+        buffer.get_u8()
+    }
+}
+
+impl DecodeTlvValueUnchecked for u16 {
+    fn decode_tlv_value_unchecked(buffer: impl AsRef<[u8]>) -> Self {
+        let mut buffer = buffer.as_ref();
+        buffer.get_u16()
+    }
+}
+
+impl DecodeTlvValueUnchecked for u32 {
+    fn decode_tlv_value_unchecked(buffer: impl AsRef<[u8]>) -> Self {
+        let mut buffer = buffer.as_ref();
+        buffer.get_u32()
+    }
+}
+
+impl<const N: usize> DecodeTlvValueUnchecked for [u8; N] {
+    fn decode_tlv_value_unchecked(buffer: impl AsRef<[u8]>) -> Self {
+        let mut buffer = buffer.as_ref();
+        let mut array = [0_u8; N];
+
+        for i in 0..buffer.len() {
+            array[i] = buffer.get_u8();
+        }
+        array
+    }
+}
+
 pub trait TryEncodeTlv: TryEncodeTlvValue {
     /// Encode some data type into the TLV format.
     ///
@@ -98,6 +131,46 @@ pub trait TryEncodeTlvValue {
     ///
     /// Returns the number of bytes written to the buffer.
     fn try_encode_tlv_value(&self, buffer: &mut [u8]) -> Result<usize, TwineTlvError>;
+}
+
+impl TryEncodeTlvValue for u8 {
+    fn try_encode_tlv_value(&self, buffer: &mut [u8]) -> Result<usize, TwineTlvError> {
+        let mut buffer = buffer.as_mut();
+        buffer.put_u8(*self);
+        Ok(1)
+    }
+}
+
+impl TryEncodeTlvValue for u16 {
+    fn try_encode_tlv_value(&self, buffer: &mut [u8]) -> Result<usize, TwineTlvError> {
+        let mut buffer = buffer.as_mut();
+        buffer.put_u16(*self);
+        Ok(2)
+    }
+}
+
+impl TryEncodeTlvValue for u32 {
+    fn try_encode_tlv_value(&self, buffer: &mut [u8]) -> Result<usize, TwineTlvError> {
+        let mut buffer = buffer.as_mut();
+        buffer.put_u32(*self);
+        Ok(4)
+    }
+}
+
+impl<const N: usize> TryEncodeTlvValue for [u8; N] {
+    fn try_encode_tlv_value(&self, buffer: &mut [u8]) -> Result<usize, TwineTlvError> {
+        let mut buffer = buffer.as_mut();
+
+        if buffer.len() < N {
+            return Err(TwineTlvError::BufferEncodeTooShort);
+        }
+
+        for &byte in self.iter() {
+            buffer.put_u8(byte);
+        }
+
+        Ok(N)
+    }
 }
 
 pub trait TlvType {
