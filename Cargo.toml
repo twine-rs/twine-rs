@@ -2,9 +2,9 @@
 resolver = "2"
 
 members = [
-    "twine-cli",
+    "twine-cli", "twine-codec",
     "twine-macros",
-    "twine-tlv",
+    "twine-tlv", "xtask",
 ]
 
 [workspace.package]
@@ -14,8 +14,13 @@ description = "Tools for working with Thread"
 edition = "2021"
 
 [workspace.dependencies]
-bytes = { version = "1.10.1", default-features = false }
+bitflags = "2.9.0"
+bitfield = "0.19"
+bytes = { version = "1.10.1", default-features = false, features = ["extra-platforms"] }
 env_logger = "0.11.8"
 insta = "1.43.1"
 log = "0.4.27"
 thiserror = { version = "2.0.12", default-features = false }
+typed-builder = "0.20.0"
+serde = { version = "1.0.219", features = ["derive"] }
+zbus = { version = "5.5.0", features = ["tokio"] }
