@@ -307,6 +307,22 @@ impl<const CAPACITY: usize> TlvCollection<CAPACITY> {
 
         Ok(())
     }
+
+    /// Find and replace the first TLV of type `T` in the collection with a new TLV.
+    ///
+    /// If the TLV is not found, it will be appended to the end of the collection.
+    pub fn replace_or_push<T>(&mut self, tlv: T) -> Result<(), TwineTlvError>
+    where
+        T: TryEncodeTlv + TlvMetadata,
+    {
+        if let Some(_) = Self::find_tlv_with_type(T::TLV_TYPE, self.buffer) {
+            self.replace(tlv)?;
+        } else {
+            self.push(tlv)?;
+        }
+
+        Ok(())
+    }
 }
 
 impl<'a, const CAPACITY: usize> IntoIterator for &'a TlvCollection<CAPACITY> {
@@ -317,6 +333,7 @@ impl<'a, const CAPACITY: usize> IntoIterator for &'a TlvCollection<CAPACITY> {
         TlvCollectionIter {
             collection: &self,
             cursor: 0,
+            end: self.len(),
         }
     }
 }
@@ -324,24 +341,39 @@ impl<'a, const CAPACITY: usize> IntoIterator for &'a TlvCollection<CAPACITY> {
 pub struct TlvCollectionIter<'a, const CAPACITY: usize> {
     collection: &'a TlvCollection<CAPACITY>,
     cursor: usize,
+    end: usize,
 }
 
 impl<'a, const CAPACITY: usize> Iterator for TlvCollectionIter<'a, CAPACITY> {
     type Item = &'a [u8];
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.cursor >= CAPACITY {
+        if self.cursor >= self.end {
             return None;
         }
 
-        let buffer = &self.collection.buffer[self.cursor..];
+        let remaining = &self.collection.buffer[self.cursor..self.end];
 
-        if let Some(bytes) = self.collection.find_tlv(buffer[0]) {
-            self.cursor += bytes.len();
-            Some(bytes)
-        } else {
-            None
+        if TlvCollection::<CAPACITY>::peek_tlv_len(remaining) == 0 {
+            self.cursor = self.end;
+            return None;
         }
+
+        let step = TlvCollection::<CAPACITY>::next_tlv_position(remaining);
+        if step == 0 {
+            self.cursor = self.end;
+            return None;
+        }
+
+        let next = self.cursor + step;
+        if next > self.end {
+            self.cursor = self.end;
+            return None;
+        }
+
+        let out = &self.collection.buffer[self.cursor..next];
+        self.cursor = next;
+        Some(out)
     }
 }
 
@@ -755,5 +787,23 @@ mod tests {
                 Some(vec![0x02, 0x02, 0xAA, 0xAA])
             ))
         );
+    }
+
+    /// Iterate through only the TLV bytes in the collection, ignoring any trailing zeroes.
+    #[test]
+    fn success_iter_only_tlvs() {
+        env_logger::builder().is_test(true).try_init().ok();
+        let dataset = "0e08000000000001000000030000144a0300000f35060004001fffe0020809402ca7b633ca5a0708fde22fdc94779b160510178519eb13ef00bc54f301263c11396c030f4f70656e5468726561642d3864373701028d770410b0742d493ad81228d076a31fdb1e9f790c0402a0f7f8";
+        let tlv_collection = TlvCollection::<256>::new_from_str(dataset).unwrap();
+
+        let count = tlv_collection.count();
+        assert_eq!(count, 11);
+
+        let iter_count = tlv_collection.into_iter().count();
+        assert_eq!(iter_count, 11);
+
+        tlv_collection.into_iter().for_each(|i| {
+            insta::assert_debug_snapshot!(i);
+        });
     }
 }

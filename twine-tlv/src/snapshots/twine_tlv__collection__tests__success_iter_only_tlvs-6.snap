@@ -1,0 +1,16 @@
+---
+source: twine-tlv/src/collection.rs
+expression: i
+---
+[
+    7,
+    8,
+    253,
+    226,
+    47,
+    220,
+    148,
+    119,
+    155,
+    22,
+]

@@ -107,6 +107,13 @@ impl DecodeTlvValueUnchecked for u32 {
     }
 }
 
+impl DecodeTlvValueUnchecked for u64 {
+    fn decode_tlv_value_unchecked(buffer: impl AsRef<[u8]>) -> Self {
+        let mut buffer = buffer.as_ref();
+        buffer.get_u64()
+    }
+}
+
 impl<const N: usize> DecodeTlvValueUnchecked for [u8; N] {
     fn decode_tlv_value_unchecked(buffer: impl AsRef<[u8]>) -> Self {
         let mut buffer = buffer.as_ref();
@@ -154,6 +161,14 @@ impl TryEncodeTlvValue for u32 {
         let mut buffer = buffer.as_mut();
         buffer.put_u32(*self);
         Ok(4)
+    }
+}
+
+impl TryEncodeTlvValue for u64 {
+    fn try_encode_tlv_value(&self, buffer: &mut [u8]) -> Result<usize, TwineTlvError> {
+        let mut buffer = buffer.as_mut();
+        buffer.put_u64(*self);
+        Ok(8)
     }
 }
 

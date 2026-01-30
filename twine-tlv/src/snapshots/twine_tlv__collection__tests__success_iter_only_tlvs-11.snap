@@ -1,0 +1,12 @@
+---
+source: twine-tlv/src/collection.rs
+expression: i
+---
+[
+    12,
+    4,
+    2,
+    160,
+    247,
+    248,
+]
