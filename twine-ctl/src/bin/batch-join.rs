@@ -1,11 +1,11 @@
-use std::{path::PathBuf, str::FromStr};
+use std::str::FromStr;
 
-use clap::{Parser, Subcommand};
+use clap::Parser;
 use env_logger::Env;
-use serialport::{available_ports, SerialPort, SerialPortType};
+use serialport::{available_ports, SerialPortType};
 
 use twine_codec::OperationalDataset;
-use twine_ctl::{TwineCtl, TwineCtlError, TwineCtlSerialShell};
+use twine_ctl::{TwineCtl, TwineCtlSerialShell};
 
 const NORDIC_VID: u16 = 0x1915;
 const NORDIC_PID: u16 = 0xcafe;
