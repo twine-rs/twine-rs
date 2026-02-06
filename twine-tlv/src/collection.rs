@@ -56,6 +56,11 @@ impl<const CAPACITY: usize> TlvCollection<CAPACITY> {
         Self::find_buffer_len(self.buffer)
     }
 
+    /// Returns true if the collection contains no TLV data.
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
+    }
+
     /// Returns the number of TLV items in the collection.
     pub fn count(&self) -> usize {
         let mut count = 0;
