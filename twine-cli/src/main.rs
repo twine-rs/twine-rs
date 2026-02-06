@@ -1,6 +1,4 @@
-use log;
 use socket2::{Domain, Protocol, Socket, Type};
-use std::net::{SocketAddr, TcpListener};
 
 fn check_af_inet6() {
     let socket = match Socket::new(Domain::IPV6, Type::DGRAM, Some(Protocol::ICMPV6)) {

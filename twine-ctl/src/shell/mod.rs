@@ -7,7 +7,6 @@
 
 use core::{str::FromStr, time::Duration};
 
-use log;
 use twine_codec::{
     Channel, ChannelMask, NetworkName, NetworkRole, OperationalDataset, PanId, Rloc16,
 };
