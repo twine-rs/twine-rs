@@ -315,7 +315,7 @@ impl<const CAPACITY: usize> TlvCollection<CAPACITY> {
     where
         T: TryEncodeTlv + TlvMetadata,
     {
-        if let Some(_) = Self::find_tlv_with_type(T::TLV_TYPE, self.buffer) {
+        if Self::find_tlv_with_type(T::TLV_TYPE, self.buffer).is_some() {
             self.replace(tlv)?;
         } else {
             self.push(tlv)?;
