@@ -99,7 +99,7 @@ pub fn write_tlv<T>(
 where
     T: TlvMetadata + TryEncodeTlvValue,
 {
-    let mut buffer = buffer.as_mut();
+    let mut buffer = buffer;
     let value_bytes_len = value.tlv_len();
 
     if value_bytes_len > u16::MAX as usize {

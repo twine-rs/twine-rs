@@ -59,7 +59,7 @@ impl DecodeTlvValueUnchecked for Channel {
 
 impl TryEncodeTlvValue for Channel {
     fn try_encode_tlv_value(&self, buffer: &mut [u8]) -> Result<usize, TwineTlvError> {
-        let mut buffer = buffer.as_mut();
+        let mut buffer = buffer;
         buffer.put_u8(self.page());
         buffer.put_u16(self.channel());
         Ok(self.tlv_len())

@@ -171,7 +171,7 @@ impl DecodeTlvValueUnchecked for ChannelMask {
 
 impl TryEncodeTlvValue for ChannelMask {
     fn try_encode_tlv_value(&self, buffer: &mut [u8]) -> Result<usize, twine_tlv::TwineTlvError> {
-        let mut buffer = buffer.as_mut();
+        let mut buffer = buffer;
         buffer.put_u8(self.page.into());
         buffer.put_u8(self.len);
         buffer.put_u32(self.mask.bits().reverse_bits());

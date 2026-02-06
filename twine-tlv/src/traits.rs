@@ -142,7 +142,7 @@ pub trait TryEncodeTlvValue {
 
 impl TryEncodeTlvValue for u8 {
     fn try_encode_tlv_value(&self, buffer: &mut [u8]) -> Result<usize, TwineTlvError> {
-        let mut buffer = buffer.as_mut();
+        let mut buffer = buffer;
         buffer.put_u8(*self);
         Ok(1)
     }
@@ -150,7 +150,7 @@ impl TryEncodeTlvValue for u8 {
 
 impl TryEncodeTlvValue for u16 {
     fn try_encode_tlv_value(&self, buffer: &mut [u8]) -> Result<usize, TwineTlvError> {
-        let mut buffer = buffer.as_mut();
+        let mut buffer = buffer;
         buffer.put_u16(*self);
         Ok(2)
     }
@@ -158,7 +158,7 @@ impl TryEncodeTlvValue for u16 {
 
 impl TryEncodeTlvValue for u32 {
     fn try_encode_tlv_value(&self, buffer: &mut [u8]) -> Result<usize, TwineTlvError> {
-        let mut buffer = buffer.as_mut();
+        let mut buffer = buffer;
         buffer.put_u32(*self);
         Ok(4)
     }
@@ -166,7 +166,7 @@ impl TryEncodeTlvValue for u32 {
 
 impl TryEncodeTlvValue for u64 {
     fn try_encode_tlv_value(&self, buffer: &mut [u8]) -> Result<usize, TwineTlvError> {
-        let mut buffer = buffer.as_mut();
+        let mut buffer = buffer;
         buffer.put_u64(*self);
         Ok(8)
     }
@@ -174,7 +174,7 @@ impl TryEncodeTlvValue for u64 {
 
 impl<const N: usize> TryEncodeTlvValue for [u8; N] {
     fn try_encode_tlv_value(&self, buffer: &mut [u8]) -> Result<usize, TwineTlvError> {
-        let mut buffer = buffer.as_mut();
+        let mut buffer = buffer;
 
         if buffer.len() < N {
             return Err(TwineTlvError::BufferEncodeTooShort);
