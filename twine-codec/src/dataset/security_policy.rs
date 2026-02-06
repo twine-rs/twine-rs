@@ -235,6 +235,7 @@ impl core::fmt::Display for SecurityPolicy {
     }
 }
 
+#[derive(Default)]
 pub struct SecurityPolicyBuilder {
     obtain_network_key_enabled: Option<bool>,
     native_commissioning_enabled: Option<bool>,
@@ -250,22 +251,6 @@ pub struct SecurityPolicyBuilder {
 }
 
 impl SecurityPolicyBuilder {
-    pub fn new() -> Self {
-        SecurityPolicyBuilder {
-            obtain_network_key_enabled: None,
-            native_commissioning_enabled: None,
-            legacy_routers_enabled: None,
-            external_commissioner_enabled: None,
-            commercial_commissioning_mode_disabled: None,
-            autonomous_enrollment_disabled: None,
-            network_key_provisioning_disabled: None,
-            to_ble_link_disabled: None,
-            non_ccm_routers_disabled: None,
-            version_threshold: None,
-            rotation_time_hours: None,
-        }
-    }
-
     #[cfg(test)]
     pub fn with_disabled_policy() -> Self {
         SecurityPolicyBuilder {
@@ -721,7 +706,7 @@ mod tests {
         let policy = SecurityPolicy::default();
         assert_eq!(std::format!("{}", policy), "672 onrc 0");
 
-        let policy = SecurityPolicyBuilder::new()
+        let policy = SecurityPolicyBuilder::default()
             .disable_obtain_network_key()
             .disable_native_commissioning()
             .disable_legacy_routers()
