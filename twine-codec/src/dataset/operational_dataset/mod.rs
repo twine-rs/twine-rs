@@ -56,7 +56,7 @@ impl OperationalDataset {
         let _ = collection.push(channel_mask)?;
 
         let xpan = ExtendedPanId::random();
-        let _ = collection.push(ExtendedPanId::from(xpan))?;
+        let _ = collection.push(xpan)?;
 
         let mesh_local_prefix = MeshLocalPrefix::random_ula();
         let _ = collection.push(mesh_local_prefix)?;
