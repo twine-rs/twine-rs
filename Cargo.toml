@@ -5,6 +5,7 @@ members = [
     "twine-cli", "twine-codec",
     "twine-macros",
     "twine-tlv", "xtask",
+    "twine-ctl"
 ]
 
 [workspace.package]
@@ -14,10 +15,13 @@ description = "Tools for working with Thread"
 edition = "2021"
 
 [workspace.dependencies]
+async-trait = "0.1.89"
 bitflags = "2.9.0"
 bitfield = "0.19"
 bytes = { version = "1.10.1", default-features = false, features = ["extra-platforms"] }
+clap = { version = "4.5", features = ["derive"] }
 env_logger = "0.11.8"
+hex = { version = "0.4", default-features = false }
 insta = "1.43.1"
 log = "0.4.27"
 thiserror = { version = "2.0.12", default-features = false }

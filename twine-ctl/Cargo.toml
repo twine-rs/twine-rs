@@ -1,0 +1,31 @@
+[package]
+name = "twine-ctl"
+version.workspace = true
+authors.workspace = true
+description.workspace = true
+edition.workspace = true
+
+[features]
+std = ["alloc"]
+alloc = []
+build-batch-join = ["std", "dep:clap", "dep:env_logger", "twine-codec/std"]
+build-info-dump = ["dep:clap", "dep:env_logger"]
+
+[dependencies]
+async-trait.workspace = true
+clap = { workspace = true, optional = true }
+env_logger = { workspace = true, optional = true }
+log.workspace = true
+serialport = { version = "4.8.1", features = ["serde", "usbportinfo-interface"] }
+thiserror.workspace = true
+tokio = { version = "1.49.0", features = ["full"] }
+tokio-serial = "5.4.5"
+twine-codec = { path = "../twine-codec", default-features = false }
+
+[[bin]]
+name = "batch-join"
+required-features = ["build-batch-join"]
+
+[[bin]]
+name = "info-dump"
+required-features = ["build-info-dump"]
