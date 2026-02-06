@@ -119,8 +119,9 @@ impl<const N: usize> DecodeTlvValueUnchecked for [u8; N] {
         let mut buffer = buffer.as_ref();
         let mut array = [0_u8; N];
 
-        for i in 0..buffer.len() {
-            array[i] = buffer.get_u8();
+        let count = core::cmp::min(N, buffer.len());
+        for slot in array.iter_mut().take(count) {
+            *slot = buffer.get_u8();
         }
         array
     }
