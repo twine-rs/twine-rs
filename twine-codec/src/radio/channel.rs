@@ -42,7 +42,9 @@ impl Channel {
     }
 
     pub fn from_str_channel_only(s: &str) -> Result<Self, TwineCodecError> {
-        let channel = u16::from_str_radix(s, 10).map_err(|_| TwineCodecError::StringParseError)?;
+        let channel = s
+            .parse::<u16>()
+            .map_err(|_| TwineCodecError::StringParseError)?;
         Ok(Self::new(0, channel))
     }
 }
