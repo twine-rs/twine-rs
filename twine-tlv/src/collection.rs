@@ -331,7 +331,7 @@ impl<'a, const CAPACITY: usize> IntoIterator for &'a TlvCollection<CAPACITY> {
 
     fn into_iter(self) -> Self::IntoIter {
         TlvCollectionIter {
-            collection: &self,
+            collection: self,
             cursor: 0,
             end: self.len(),
         }
