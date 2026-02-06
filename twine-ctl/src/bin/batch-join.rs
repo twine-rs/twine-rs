@@ -80,9 +80,13 @@ async fn main() {
             eprintln!("Failed to set active dataset: {}", e);
         });
 
-        let active_dataset = dev.active_dataset().await.map_err(|e| {
-            eprintln!("Failed to fetch active dataset: {}", e);
-        }).unwrap();
+        let active_dataset = dev
+            .active_dataset()
+            .await
+            .map_err(|e| {
+                eprintln!("Failed to fetch active dataset: {}", e);
+            })
+            .unwrap();
         println!("Active Dataset: {active_dataset}");
     }
 }
