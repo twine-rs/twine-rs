@@ -157,8 +157,7 @@ impl FromStr for OperationalDataset {
 
 impl core::fmt::Display for OperationalDataset {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        self.iter()
-            .fold(Ok(()), |res, item| res.and_then(|_| writeln!(f, "{item}")))
+        self.iter().try_fold((), |_, item| writeln!(f, "{item}"))
     }
 }
 
