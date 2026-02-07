@@ -85,8 +85,8 @@ pub(crate) fn test_tlv_extended_data_type() -> [u8; 256 + 4] {
     data[1] = 0xFF;
     data[2] = 0x01;
     data[3] = 0x00;
-    for i in 4..data.len() {
-        data[i] = 0xAA_u8;
+    for byte in data[4..].iter_mut() {
+        *byte = 0xAA_u8;
     }
     data
 }
@@ -100,8 +100,8 @@ impl DecodeTlvValueUnchecked for TestTlvExtendedDataType {
         let mut buffer = buffer.as_ref();
         let mut data = [0_u8; 256];
 
-        for i in 0..data.len() {
-            data[i] = buffer.get_u8();
+        for byte in data.iter_mut() {
+            *byte = buffer.get_u8();
         }
 
         TestTlvExtendedDataType(data)
