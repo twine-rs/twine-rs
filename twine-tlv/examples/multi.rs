@@ -11,16 +11,16 @@ use twine_tlv::{
 #[tlv(variant = "Variant1", tlv_type = 0x03, tlv_length = 3)]
 #[tlv(variant = "Variant2", tlv_type = 0x21, tlv_length = 3)]
 struct ExampleData {
-    foo: u8,
+    inner: u8,
     bar: u16,
 }
 
 impl DecodeTlvValueUnchecked for ExampleData {
     fn decode_tlv_value_unchecked(buffer: impl AsRef<[u8]>) -> Self {
         let mut buffer = buffer.as_ref();
-        let foo = buffer.get_u8();
+        let inner = buffer.get_u8();
         let bar = buffer.get_u16();
-        ExampleData { foo, bar }
+        ExampleData { inner, bar }
     }
 }
 
@@ -30,7 +30,7 @@ impl TryEncodeTlvValue for ExampleData {
         buffer: &mut [u8],
     ) -> Result<usize, twine_tlv::error::TwineTlvError> {
         let mut buffer = buffer;
-        buffer.put_u8(self.foo);
+        buffer.put_u8(self.inner);
         buffer.put_u16(self.bar);
         Ok(self.tlv_len())
     }
@@ -42,7 +42,7 @@ struct MoreExampleData(u32);
 
 fn main() {
     let data0 = ExampleData {
-        foo: 0x2A,
+        inner: 0x2A,
         bar: 0xDEAD,
     };
     let data1 = MoreExampleData(0xDAFF_0D11);
@@ -58,7 +58,7 @@ fn main() {
     println!("Transform ExampleData:\t{:02X?}", transform_data0);
 
     let data2 = Variant2ExampleData(ExampleData {
-        foo: 0xFF,
+        inner: 0xFF,
         bar: 0xFFFF,
     });
     collection.replace(data2).unwrap();

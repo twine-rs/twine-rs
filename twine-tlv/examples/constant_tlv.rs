@@ -9,7 +9,7 @@ use twine_tlv::{
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 struct ExampleData {
-    foo: u8,
+    inner: u8,
     bar: u16,
 }
 
@@ -30,7 +30,7 @@ impl TlvLength for ExampleData {
 impl TlvMetadata for ExampleData {}
 
 impl TlvConstantMetadata for ExampleData {
-    const TLV_LEN: usize = 3; // 1 byte for foo + 2 bytes for bar
+    const TLV_LEN: usize = 3; // 1 byte for inner + 2 bytes for bar
 }
 
 impl DecodeTlvUnchecked for ExampleData {
@@ -45,9 +45,9 @@ impl DecodeTlvUnchecked for ExampleData {
 impl DecodeTlvValueUnchecked for ExampleData {
     fn decode_tlv_value_unchecked(buffer: impl AsRef<[u8]>) -> Self {
         let mut buffer = buffer.as_ref();
-        let foo = buffer.get_u8();
+        let inner = buffer.get_u8();
         let bar = buffer.get_u16();
-        ExampleData { foo, bar }
+        ExampleData { inner, bar }
     }
 }
 
@@ -64,7 +64,7 @@ impl TryEncodeTlvValue for ExampleData {
         buffer: &mut [u8],
     ) -> Result<usize, twine_tlv::error::TwineTlvError> {
         let mut buffer = buffer;
-        buffer.put_u8(self.foo);
+        buffer.put_u8(self.inner);
         buffer.put_u16(self.bar);
         Ok(self.tlv_len())
     }
@@ -73,14 +73,14 @@ impl TryEncodeTlvValue for ExampleData {
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Tlv)]
 #[tlv(tlv_type = 0x02, tlv_length = 4)]
 struct MoreExampleData {
-    baz: u32,
+    inner: u32,
 }
 
 impl DecodeTlvValueUnchecked for MoreExampleData {
     fn decode_tlv_value_unchecked(buffer: impl AsRef<[u8]>) -> Self {
         let mut buffer = buffer.as_ref();
-        let baz = buffer.get_u32();
-        MoreExampleData { baz }
+        let inner = buffer.get_u32();
+        MoreExampleData { inner }
     }
 }
 
@@ -90,17 +90,17 @@ impl TryEncodeTlvValue for MoreExampleData {
         buffer: &mut [u8],
     ) -> Result<usize, twine_tlv::error::TwineTlvError> {
         let mut buffer = buffer;
-        buffer.put_u32(self.baz);
+        buffer.put_u32(self.inner);
         Ok(self.tlv_len())
     }
 }
 
 fn main() {
     let data0 = ExampleData {
-        foo: 0x2A,
+        inner: 0x2A,
         bar: 0xDEAD,
     };
-    let data1 = MoreExampleData { baz: 0xDAFF_0D11 };
+    let data1 = MoreExampleData { inner: 0xDAFF_0D11 };
     let mut collection = TlvCollection::<16>::default();
 
     collection.push(data0).unwrap();
@@ -108,7 +108,7 @@ fn main() {
     println!("Push data:\t\t{:02X?}", collection);
 
     let data2 = ExampleData {
-        foo: 0xFF,
+        inner: 0xFF,
         bar: 0xFFFF,
     };
     collection.replace(data2).unwrap();
