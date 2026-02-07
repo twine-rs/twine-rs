@@ -86,7 +86,7 @@ pub(crate) fn test_tlv_extended_data_type() -> [u8; 256 + 4] {
     data[2] = 0x01;
     data[3] = 0x00;
     for i in 4..data.len() {
-        data[i] = 0xAA as u8;
+        data[i] = 0xAA_u8;
     }
     data
 }
