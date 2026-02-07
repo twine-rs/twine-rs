@@ -37,6 +37,8 @@ mod test_utils;
 mod traits;
 
 pub use collection::TlvCollection;
+#[cfg(any(test, feature = "alloc"))]
+pub use collection::TlvCollectionDiffEntry;
 pub use error::TwineTlvError;
 pub use traits::{
     DecodeTlvUnchecked, DecodeTlvValueUnchecked, GetTlvLength, PutTlvLength, TlvConstantMetadata,

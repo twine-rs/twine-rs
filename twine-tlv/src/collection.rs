@@ -213,11 +213,12 @@ impl<const CAPACITY: usize> TlvCollection<CAPACITY> {
         }
     }
 
+    /// Generate a list of TLV types that are different between this collection and another.
     #[cfg(any(test, feature = "alloc"))]
     pub fn tlv_diff_list(&self, other: &Self) -> Vec<u8> {
         self.tlv_diff_list_with_data(other)
             .iter()
-            .map(|(t, _, _)| *t)
+            .map(|d| d.tlv_type)
             .collect()
     }
 
@@ -225,10 +226,7 @@ impl<const CAPACITY: usize> TlvCollection<CAPACITY> {
     ///
     /// Returns a vector of TLV types and the data for `self` and `other` when a difference is found.
     #[cfg(any(test, feature = "alloc"))]
-    pub fn tlv_diff_list_with_data(
-        &self,
-        other: &Self,
-    ) -> Vec<(u8, Option<Vec<u8>>, Option<Vec<u8>>)> {
+    pub fn tlv_diff_list_with_data(&self, other: &Self) -> Vec<TlvCollectionDiffEntry> {
         let mut diff = Vec::new();
 
         let mut map_self = BTreeMap::new();
@@ -260,7 +258,7 @@ impl<const CAPACITY: usize> TlvCollection<CAPACITY> {
 
             // Only create a new entry when there is a difference between the presence or content
             if self_data != other_data {
-                diff.push((t, self_data, other_data));
+                diff.push((t, self_data, other_data).into());
             }
         }
 
@@ -379,6 +377,29 @@ impl<'a, const CAPACITY: usize> Iterator for TlvCollectionIter<'a, CAPACITY> {
         let out = &self.collection.buffer[self.cursor..next];
         self.cursor = next;
         Some(out)
+    }
+}
+
+/// A struct representing a difference between two TLV collections for a specific TLV type.
+///
+/// If either `self_data` or `other_data` is `None`, it indicates that the TLV type was not present in that collection.
+/// If both are `Some`, it indicates that the TLV type was present in both collections but had different data.
+#[cfg(any(test, feature = "alloc"))]
+#[derive(Debug, Eq, PartialEq)]
+pub struct TlvCollectionDiffEntry {
+    pub tlv_type: u8,
+    pub self_data: Option<Vec<u8>>,
+    pub other_data: Option<Vec<u8>>,
+}
+
+#[cfg(any(test, feature = "alloc"))]
+impl From<(u8, Option<Vec<u8>>, Option<Vec<u8>>)> for TlvCollectionDiffEntry {
+    fn from(value: (u8, Option<Vec<u8>>, Option<Vec<u8>>)) -> Self {
+        Self {
+            tlv_type: value.0,
+            self_data: value.1,
+            other_data: value.2,
+        }
     }
 }
 
@@ -711,7 +732,7 @@ mod tests {
         assert_eq!(diff_list.len(), 1);
         assert_eq!(
             diff_list.pop(),
-            Some((0x03, Some(vec![0x03, 0x02, 0xBB, 0xBB]), None))
+            Some((0x03, Some(vec![0x03, 0x02, 0xBB, 0xBB]), None).into())
         );
     }
 
@@ -736,7 +757,7 @@ mod tests {
         assert_eq!(diff_list.len(), 1);
         assert_eq!(
             diff_list.pop(),
-            Some((0x03, Some(vec![0x03, 0x02, 0xBB, 0xBB]), None))
+            Some((0x03, Some(vec![0x03, 0x02, 0xBB, 0xBB]), None).into())
         );
     }
 
@@ -760,7 +781,7 @@ mod tests {
         assert_eq!(diff_list.len(), 1);
         assert_eq!(
             diff_list.pop(),
-            Some((0x03, None, Some(vec![0x03, 0x02, 0xBB, 0xBB])))
+            Some((0x03, None, Some(vec![0x03, 0x02, 0xBB, 0xBB])).into())
         );
     }
 
@@ -786,11 +807,14 @@ mod tests {
         assert_eq!(diff_list.len(), 1);
         assert_eq!(
             diff_list.pop(),
-            Some((
-                0x02,
-                Some(vec![0x02, 0x02, 0xDD, 0xDD]),
-                Some(vec![0x02, 0x02, 0xAA, 0xAA])
-            ))
+            Some(
+                (
+                    0x02,
+                    Some(vec![0x02, 0x02, 0xDD, 0xDD]),
+                    Some(vec![0x02, 0x02, 0xAA, 0xAA])
+                )
+                    .into()
+            )
         );
     }
 
