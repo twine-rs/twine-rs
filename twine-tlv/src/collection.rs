@@ -44,7 +44,7 @@ impl<const CAPACITY: usize> TlvCollection<CAPACITY> {
     #[cfg(any(test, feature = "alloc"))]
     pub fn new_from_str(collection: &str) -> Result<Self, TwineTlvError> {
         let mut buffer = [0_u8; CAPACITY];
-        let src_len = collection.as_bytes().len();
+        let src_len = collection.len();
         faster_hex::hex_decode(collection.as_bytes(), &mut buffer[..src_len / 2])
             .map_err(TwineTlvError::HexError)?;
 
