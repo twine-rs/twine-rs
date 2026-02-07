@@ -32,7 +32,7 @@ impl DecodeTlvValueUnchecked for TestTlvDataTypeZero {
 
 impl TryEncodeTlvValue for TestTlvDataTypeZero {
     fn try_encode_tlv_value(&self, buffer: &mut [u8]) -> Result<usize, TwineTlvError> {
-        let mut buffer = buffer.as_mut();
+        let mut buffer = buffer;
 
         if buffer.len() < self.tlv_len() {
             return Err(TwineTlvError::BufferEncodeTooShort);
@@ -68,7 +68,7 @@ impl TryEncodeTlvValue for TestTlvData {
         &self,
         buffer: &mut [u8],
     ) -> Result<usize, crate::error::TwineTlvError> {
-        let mut buffer = buffer.as_mut();
+        let mut buffer = buffer;
 
         buffer.put_u8(self.0[0]);
         buffer.put_u8(self.0[1]);
@@ -110,7 +110,7 @@ impl DecodeTlvValueUnchecked for TestTlvExtendedDataType {
 
 impl TryEncodeTlvValue for TestTlvExtendedDataType {
     fn try_encode_tlv_value(&self, buffer: &mut [u8]) -> Result<usize, TwineTlvError> {
-        let mut buffer = buffer.as_mut();
+        let mut buffer = buffer;
 
         if buffer.len() < self.tlv_len() {
             return Err(TwineTlvError::BufferEncodeTooShort);
@@ -149,7 +149,7 @@ impl DecodeTlvValueUnchecked for TestTlvVariableDataType {
 
 impl TryEncodeTlvValue for TestTlvVariableDataType {
     fn try_encode_tlv_value(&self, buffer: &mut [u8]) -> Result<usize, TwineTlvError> {
-        let mut buffer = buffer.as_mut();
+        let mut buffer = buffer;
 
         if buffer.len() < self.tlv_len() {
             return Err(TwineTlvError::BufferEncodeTooShort);

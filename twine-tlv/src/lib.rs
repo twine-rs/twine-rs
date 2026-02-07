@@ -161,7 +161,7 @@ mod tests {
 
     impl TryEncodeTlvValue for ExampleTestData {
         fn try_encode_tlv_value(&self, buffer: &mut [u8]) -> Result<usize, TwineTlvError> {
-            let mut buffer = buffer.as_mut();
+            let mut buffer = buffer;
             buffer.put_u8(self.foo);
             buffer.put_u16(self.bar);
             Ok(Self::TLV_LEN)

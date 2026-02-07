@@ -52,7 +52,7 @@ impl TryEncodeTlv for ExampleData {
 
 impl TryEncodeTlvValue for ExampleData {
     fn try_encode_tlv_value(&self, buffer: &mut [u8]) -> Result<usize, TwineTlvError> {
-        let mut buffer = buffer.as_mut();
+        let mut buffer = buffer;
 
         if buffer.len() < self.tlv_len() {
             return Err(TwineTlvError::BufferEncodeTooShort);
@@ -86,7 +86,7 @@ impl DecodeTlvValueUnchecked for ExampleStringData {
 
 impl TryEncodeTlvValue for ExampleStringData {
     fn try_encode_tlv_value(&self, buffer: &mut [u8]) -> Result<usize, TwineTlvError> {
-        let mut buffer = buffer.as_mut();
+        let mut buffer = buffer;
 
         if buffer.len() < self.tlv_len() {
             return Err(TwineTlvError::BufferEncodeTooShort);

@@ -63,7 +63,7 @@ impl TryEncodeTlvValue for ExampleData {
         &self,
         buffer: &mut [u8],
     ) -> Result<usize, twine_tlv::error::TwineTlvError> {
-        let mut buffer = buffer.as_mut();
+        let mut buffer = buffer;
         buffer.put_u8(self.foo);
         buffer.put_u16(self.bar);
         Ok(self.tlv_len())
@@ -89,7 +89,7 @@ impl TryEncodeTlvValue for MoreExampleData {
         &self,
         buffer: &mut [u8],
     ) -> Result<usize, twine_tlv::error::TwineTlvError> {
-        let mut buffer = buffer.as_mut();
+        let mut buffer = buffer;
         buffer.put_u32(self.baz);
         Ok(self.tlv_len())
     }
