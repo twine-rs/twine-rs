@@ -54,7 +54,7 @@ fn main() {
 
     // Example of transforming the data back to the inner type
     println!("Varient2ExampleData:\t{:02X?}", data0);
-    let transform_data0: ExampleData = data0.into();
+    let transform_data0: ExampleData = data0;
     println!("Transform ExampleData:\t{:02X?}", transform_data0);
 
     let data2 = Variant2ExampleData(ExampleData {
