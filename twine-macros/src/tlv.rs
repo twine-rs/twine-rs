@@ -35,13 +35,13 @@ struct TlvAttr {
     /// When absent the type has variable length and the caller must implement `TlvLength` manually.
     tlv_length: Option<usize>,
 
-    /// Optional list of variant definitions. Each variant becomes a newtype
-    /// wrapper around the base struct with its own TLV type byte. The first
-    /// variant's `tlv_type` is also used as the base type's `TLV_TYPE`.
+    /// Optional list of variant definitions.
+    ///
+    /// Each variant becomes a newtype wrapper around the base struct with its own TLV type byte.
+    /// The first variant's `TLV_TYPE` is also used as the base type's `TLV_TYPE`.
     variants: Vec<VariantDef>,
 
-    /// When set, auto-derive `TryEncodeTlvValue` and `DecodeTlvValueUnchecked`
-    /// by delegating to the inner field of a single-field tuple struct.
+    /// Auto-derive `TryEncodeTlvValue` and `DecodeTlvValueUnchecked`
     derive_inner: bool,
 }
 
