@@ -389,3 +389,88 @@ trait TwineCtlShell {
             .ok_or(TwineCtlError::ShellParseError)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::collections::VecDeque;
+
+    struct MockShell {
+        lines: VecDeque<Option<String>>,
+        prompt_str: Option<String>,
+    }
+
+    #[async_trait::async_trait]
+    impl TwineCtlShell for MockShell {
+        fn cmd_timeout_duration(&self) -> Duration {
+            Duration::from_secs(1)
+        }
+
+        fn prompt(&self) -> Option<&str> {
+            self.prompt_str.as_deref()
+        }
+
+        async fn next_line(&mut self) -> Result<Option<String>, TwineCtlError> {
+            Ok(self.lines.pop_front().unwrap_or(None))
+        }
+
+        async fn run(
+            &mut self,
+            _cmd: &str,
+            _timeout_duration: Duration,
+            _skip_result_read: SkipResultRead,
+        ) -> Result<Vec<String>, TwineCtlError> {
+            // Not needed for these tests.
+            Ok(Vec::new())
+        }
+    }
+
+    #[tokio::test]
+    async fn read_result_collects_lines_until_done() {
+        let cmd = "dataset active -x";
+
+        let mut lines = VecDeque::new();
+        // echo of the command should be skipped
+        lines.push_back(Some(cmd.to_string()));
+        // prompt should be skipped
+        lines.push_back(Some("> ".to_string()));
+        // empty line should be skipped
+        lines.push_back(Some("".to_string()));
+        // actual data lines
+        lines.push_back(Some("line1".to_string()));
+        lines.push_back(Some("line2".to_string()));
+        // terminator
+        lines.push_back(Some("Done".to_string()));
+
+        let mut shell = MockShell {
+            lines,
+            prompt_str: Some('>'.to_string()),
+        };
+
+        let res = TwineCtlShell::read_result(&mut shell, cmd, Duration::from_secs(1))
+            .await
+            .expect("read_result should succeed");
+
+        assert_eq!(res, vec!["line1".to_string(), "line2".to_string()]);
+    }
+
+    #[tokio::test]
+    async fn read_result_returns_command_error() {
+        let mut lines = VecDeque::new();
+        lines.push_back(Some("Error something went wrong".to_string()));
+
+        let mut shell = MockShell {
+            lines,
+            prompt_str: None,
+        };
+
+        let res = TwineCtlShell::read_result(&mut shell, "cmd", Duration::from_secs(1)).await;
+
+        match res {
+            Err(TwineCtlError::CommandError(s)) => {
+                assert!(s.contains("Error something went wrong"));
+            }
+            other => panic!("expected CommandError, got: {:?}", other),
+        }
+    }
+}
