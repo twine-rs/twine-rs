@@ -21,6 +21,7 @@ thiserror.workspace = true
 tokio = { version = "1.49.0", features = ["full"] }
 tokio-serial = "5.4.5"
 twine-codec = { path = "../twine-codec", default-features = false, features = ["alloc"] }
+twine-macros = { path = "../twine-macros" }
 
 [[bin]]
 name = "batch-join"

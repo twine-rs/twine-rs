@@ -8,14 +8,14 @@
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader, Lines, ReadHalf, WriteHalf};
 use tokio::time::Duration;
 use tokio_serial::{SerialPortBuilderExt, SerialStream};
-use twine_codec::{
-    Channel, ChannelMask, NetworkName, NetworkRole, OperationalDataset, PanId, Rloc16,
-};
+use twine_macros::TwineShell;
 
-use crate::{error::TwineCtlError, TwineCtl};
+use crate::error::TwineCtlError;
 
 use super::{SkipResultRead, TwineCtlShell};
 
+#[derive(TwineShell)]
+#[twine_shell(crate_path = "crate")]
 pub struct TwineCtlSerialShell {
     prompt: Option<&'static str>,
     lines: Lines<BufReader<ReadHalf<SerialStream>>>,
@@ -83,71 +83,5 @@ impl TwineCtlShell for TwineCtlSerialShell {
             }
             SkipResultRead::False => self.read_result(cmd, timeout_duration).await,
         }
-    }
-}
-
-#[async_trait::async_trait]
-impl TwineCtl for TwineCtlSerialShell {
-    async fn new_random_network(&mut self) -> Result<(), TwineCtlError> {
-        self.shell_new_random_network().await
-    }
-
-    async fn active_dataset(&mut self) -> Result<OperationalDataset, TwineCtlError> {
-        self.shell_active_dataset().await
-    }
-
-    async fn attach_with_dataset(
-        &mut self,
-        dataset: &OperationalDataset,
-    ) -> Result<(), TwineCtlError> {
-        self.shell_attach_with_dataset(dataset).await
-    }
-
-    async fn pending_dataset(&mut self) -> Result<OperationalDataset, TwineCtlError> {
-        self.shell_pending_dataset().await
-    }
-
-    async fn channel(&mut self) -> Result<Channel, TwineCtlError> {
-        self.shell_channel().await
-    }
-
-    async fn preferred_channel_mask(&mut self) -> Result<ChannelMask, TwineCtlError> {
-        self.shell_preferred_channel_mask().await
-    }
-
-    async fn supported_channel_mask(&mut self) -> Result<ChannelMask, TwineCtlError> {
-        self.shell_supported_channel_mask().await
-    }
-
-    async fn factory_reset(&mut self) -> Result<(), TwineCtlError> {
-        self.shell_factory_reset().await
-    }
-
-    async fn network_name(&mut self) -> Result<NetworkName, TwineCtlError> {
-        self.shell_network_name().await
-    }
-
-    async fn pan_id(&mut self) -> Result<PanId, TwineCtlError> {
-        self.shell_pan_id().await
-    }
-
-    async fn reset(&mut self) -> Result<(), TwineCtlError> {
-        self.shell_reset().await
-    }
-
-    async fn rloc16(&mut self) -> Result<Rloc16, TwineCtlError> {
-        self.shell_rloc16().await
-    }
-
-    async fn role(&mut self) -> Result<NetworkRole, TwineCtlError> {
-        self.shell_role().await
-    }
-
-    async fn version(&mut self) -> Result<String, TwineCtlError> {
-        self.shell_version().await
-    }
-
-    async fn uptime(&mut self) -> Result<String, TwineCtlError> {
-        self.shell_uptime().await
     }
 }
