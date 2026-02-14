@@ -1,15 +1,10 @@
 use bytes::{Buf, BufMut};
 
 use twine_macros::Tlv;
-use twine_tlv::{
-    write_tlv, DecodeTlvUnchecked, DecodeTlvValueUnchecked, GetTlvLength, TlvCollection,
-    TlvConstantMetadata, TlvLength, TlvMetadata, TlvType, TryEncodeTlv, TryEncodeTlvValue,
-    TwineTlvError,
-};
+use twine_tlv::{DecodeTlvValueUnchecked, TlvCollection, TlvLength, TryEncodeTlvValue};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Tlv)]
-#[tlv(variant = "Variant1", tlv_type = 0x03, tlv_length = 3)]
-#[tlv(variant = "Variant2", tlv_type = 0x21, tlv_length = 3)]
+#[tlv(variants = [("Variant1", tlv_type = 0x03), ("Variant2", tlv_type = 0x04)], tlv_length = 3)]
 struct ExampleData {
     inner: u8,
     bar: u16,
@@ -48,23 +43,23 @@ fn main() {
     let data1 = MoreExampleData(0xDAFF_0D11);
     let mut collection = TlvCollection::<16>::default();
 
-    collection.push(Variant2ExampleData(data0)).unwrap();
+    collection.push(Variant1ExampleData::from(data0)).unwrap();
     collection.push(data1).unwrap();
     println!("Push data:\t\t{:02X?}", collection);
 
     // Example of transforming the data back to the inner type
-    println!("Varient2ExampleData:\t{:02X?}", data0);
+    println!("Variant1ExampleData:\t{:02X?}", data0);
     let transform_data0: ExampleData = data0;
     println!("Transform ExampleData:\t{:02X?}", transform_data0);
 
-    let data2 = Variant2ExampleData(ExampleData {
+    let data2 = Variant1ExampleData::from(ExampleData {
         inner: 0xFF,
         bar: 0xFFFF,
     });
     collection.replace(data2).unwrap();
     println!("Replace ExampleData:\t{:02X?}", collection);
 
-    collection.remove::<Variant2ExampleData>();
+    collection.remove::<Variant1ExampleData>();
     println!("Remove ExampleData:\t{:02X?}", collection);
 
     let decoded = collection.decode_type_unchecked::<MoreExampleData>();

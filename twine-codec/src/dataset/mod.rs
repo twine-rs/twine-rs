@@ -24,5 +24,5 @@ pub use network_name::NetworkName;
 pub use operational_dataset::OperationalDataset;
 pub use pskc::Pskc;
 pub use security_policy::{SecurityPolicy, SecurityPolicyBuilder, VersionThreshold};
-pub use timestamp::Timestamp;
+pub use timestamp::{ActiveTimestamp, PendingTimestamp, Timestamp};
 pub use xpan::ExtendedPanId;

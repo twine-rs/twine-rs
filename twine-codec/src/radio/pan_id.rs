@@ -7,10 +7,7 @@
 
 use core::str::FromStr;
 
-use bytes::Buf;
-
 use twine_macros::Tlv;
-use twine_tlv::prelude::*;
 
 use crate::TwineCodecError;
 
@@ -73,6 +70,8 @@ impl core::fmt::Display for PanId {
 
 #[cfg(test)]
 mod tests {
+    use twine_tlv::prelude::*;
+
     use super::*;
 
     const PAN_ID_TLV_BYTES: [u8; 4] = [0x01, 0x02, 0xde, 0xad];

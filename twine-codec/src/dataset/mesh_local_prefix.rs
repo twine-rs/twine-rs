@@ -6,7 +6,6 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use twine_macros::Tlv;
-use twine_tlv::prelude::*;
 
 const MESH_LOCAL_PREFIX_SIZE: usize = 8;
 

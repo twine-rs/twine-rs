@@ -9,7 +9,6 @@
 use alloc::vec::Vec;
 
 use twine_macros::Tlv;
-use twine_tlv::prelude::*;
 
 const PSKC_MAX_SIZE: usize = 16;
 

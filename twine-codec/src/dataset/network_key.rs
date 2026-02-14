@@ -12,7 +12,6 @@ use core::num::ParseIntError;
 use core::str::FromStr;
 
 use twine_macros::Tlv;
-use twine_tlv::prelude::*;
 
 const NETWORK_KEY_SIZE: usize = 16;
 

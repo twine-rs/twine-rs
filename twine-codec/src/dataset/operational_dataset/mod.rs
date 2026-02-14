@@ -11,9 +11,8 @@ use twine_tlv::TlvCollection;
 
 use crate::{
     dataset::{
-        timestamp::{ActiveTimestamp, PendingTimestamp},
-        DelayTimer, ExtendedPanId, MeshLocalPrefix, NetworkKey, NetworkName, Pskc, SecurityPolicy,
-        Timestamp,
+        ActiveTimestamp, DelayTimer, ExtendedPanId, MeshLocalPrefix, NetworkKey, NetworkName,
+        PendingTimestamp, Pskc, SecurityPolicy, Timestamp,
     },
     radio::{Channel, ChannelMask, PanId},
     TwineCodecError,

@@ -25,6 +25,10 @@
 
 #![no_std]
 
+// Allow `::twine_tlv::*` paths to resolve inside the crate itself (used by
+// the `Tlv` derive macro which emits fully-qualified paths).
+extern crate self as twine_tlv;
+
 #[cfg(any(test, feature = "alloc"))]
 extern crate alloc;
 

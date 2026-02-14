@@ -8,7 +8,7 @@ edition.workspace = true
 [features]
 default = ["std"]
 std = ["zbus", "alloc"]
-alloc = []
+alloc = ["hex/alloc"]
 zbus = ["dep:zbus", "serde"]
 serde = ["dep:serde"]
 
@@ -16,7 +16,7 @@ serde = ["dep:serde"]
 bitflags.workspace = true
 bitfield.workspace = true
 bytes.workspace = true
-hex.workspace = true
+hex = { workspace = true }
 log.workspace = true
 thiserror.workspace = true
 twine-macros = { path = "../twine-macros" }

@@ -10,11 +10,7 @@ use bytes::{Buf, BufMut};
 
 use twine_macros::Tlv;
 
-use crate::{
-    traits::{GetTlvLength, TlvLength, TryEncodeTlv},
-    write_tlv, DecodeTlvUnchecked, DecodeTlvValueUnchecked, TlvConstantMetadata, TlvMetadata,
-    TlvType, TryEncodeTlvValue, TwineTlvError,
-};
+use crate::{traits::TlvLength, DecodeTlvValueUnchecked, TryEncodeTlvValue, TwineTlvError};
 
 pub(crate) const TEST_TLV_DATA_TYPE_ZERO: [u8; 3] = [0x00, 0x01, 0xAA];
 
