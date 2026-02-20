@@ -25,5 +25,5 @@ pub enum TwineTlvError {
     BufferWrongType,
 
     #[error("Hex error: {0}")]
-    HexError(#[from] faster_hex::Error),
+    HexError(#[from] faster_hex_thiserror::Error),
 }

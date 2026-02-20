@@ -11,7 +11,7 @@ alloc = []
 
 [dependencies]
 bytes.workspace = true
-faster-hex = { git = "https://github.com/jdswensen/faster-hex.git", default-features = false, rev = "9e7511933beacf7b37da63e733750a4c3baa405c" }
+faster-hex-thiserror = { version = "0.10.1", default-features = false }
 log.workspace = true
 thiserror.workspace = true
 
