@@ -133,6 +133,23 @@ trait TwineCtlShell {
         }
     }
 
+    /// Drain any buffered lines from the shell, discarding them.
+    ///
+    /// Reads and discards lines until no new data arrives within `timeout`.
+    /// This is useful after device resets to clear stale output before sending
+    /// new commands.
+    async fn drain_lines(&mut self, timeout: Duration) -> Result<(), TwineCtlError> {
+        loop {
+            match tokio::time::timeout(timeout, self.next_line()).await {
+                Ok(Ok(Some(line))) => {
+                    log::trace!("Draining line: {}", line.trim());
+                }
+                _ => break,
+            }
+        }
+        Ok(())
+    }
+
     async fn shell_new_random_network(&mut self) -> Result<(), TwineCtlError> {
         self.run(
             "dataset init new",

@@ -78,7 +78,18 @@ impl TwineCtlShell for TwineCtlSerialShell {
 
         match skip_result_read {
             SkipResultRead::True => {
+                // Allow the device time to process the command and respond before attempting to
+                // read the next prompt
+                tokio::time::sleep(Duration::from_millis(5)).await;
+
+                // Drain any stale boot messages or leftover output
+                self.drain_lines(Duration::from_millis(5)).await?;
+
+                // Establish a new prompt
                 self.enter_and_wait_for_prompt().await?;
+
+                // Drain any remaining data that arrived after the prompt
+                self.drain_lines(Duration::from_millis(5)).await?;
                 Ok(Vec::new())
             }
             SkipResultRead::False => self.read_result(cmd, timeout_duration).await,
