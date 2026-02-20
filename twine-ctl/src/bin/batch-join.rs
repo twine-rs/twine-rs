@@ -87,6 +87,6 @@ async fn main() {
                 eprintln!("Failed to fetch active dataset: {}", e);
             })
             .unwrap();
-        println!("Active Dataset: {active_dataset}");
+        println!("{active_dataset}");
     }
 }
