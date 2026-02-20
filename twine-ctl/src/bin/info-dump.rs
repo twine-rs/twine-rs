@@ -1,4 +1,3 @@
-use env_logger;
 use twine_ctl::{TwineCtl, TwineCtlSerialShell};
 
 #[tokio::main]
