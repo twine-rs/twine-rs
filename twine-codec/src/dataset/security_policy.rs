@@ -72,7 +72,7 @@ bitfield::bitfield! {
     ///
     /// When enabled (0), the network is indicating support for Commercial Commissioning Mode (CCM).
     ///
-    /// Default: = 1 (disabled)
+    /// Default: 1 (disabled)
     get_commercial_commissioning_mode_disabled, set_commercial_commissioning_mode_disabled: 10;
 
     /// Autonomous Enrollment bit
