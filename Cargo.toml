@@ -14,6 +14,7 @@ authors = ["Jake Swensen"]
 description = "Tools for working with Thread"
 edition = "2021"
 license = "MPL-2.0"
+repository = "https://github.com/twine-rs/twine-rs"
 
 [workspace.dependencies]
 async-trait = "0.1.89"
