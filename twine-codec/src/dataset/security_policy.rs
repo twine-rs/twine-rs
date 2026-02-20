@@ -7,7 +7,7 @@
 
 use crate::error::TwineCodecError;
 
-use twine_macros::Tlv;
+use twine_rs_macros::Tlv;
 
 pub enum VersionThreshold {
     /// Protocol Version 1 (Thread v1.0) or 2 (Thread v1.1.x)

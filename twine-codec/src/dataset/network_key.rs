@@ -11,7 +11,7 @@ use alloc::vec::Vec;
 use core::num::ParseIntError;
 use core::str::FromStr;
 
-use twine_macros::Tlv;
+use twine_rs_macros::Tlv;
 
 const NETWORK_KEY_SIZE: usize = 16;
 

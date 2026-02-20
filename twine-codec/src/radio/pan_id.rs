@@ -7,7 +7,7 @@
 
 use core::str::FromStr;
 
-use twine_macros::Tlv;
+use twine_rs_macros::Tlv;
 
 use crate::TwineCodecError;
 

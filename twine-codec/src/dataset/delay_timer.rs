@@ -5,7 +5,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use twine_macros::Tlv;
+use twine_rs_macros::Tlv;
 
 /// An unsigned 32-bit number representing the time delay before the pending
 /// dataset to be applied, in milliseconds.

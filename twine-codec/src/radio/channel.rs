@@ -8,7 +8,7 @@
 use bytes::{Buf, BufMut};
 use typed_builder::TypedBuilder;
 
-use twine_macros::Tlv;
+use twine_rs_macros::Tlv;
 use twine_tlv::prelude::*;
 
 use crate::error::TwineCodecError;

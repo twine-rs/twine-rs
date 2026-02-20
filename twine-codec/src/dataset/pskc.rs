@@ -8,7 +8,7 @@
 #[cfg(any(test, feature = "alloc"))]
 use alloc::vec::Vec;
 
-use twine_macros::Tlv;
+use twine_rs_macros::Tlv;
 
 const PSKC_MAX_SIZE: usize = 16;
 
