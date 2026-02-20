@@ -8,7 +8,7 @@
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader, Lines, ReadHalf, WriteHalf};
 use tokio::time::Duration;
 use tokio_serial::{SerialPortBuilderExt, SerialStream};
-use twine_macros::TwineShell;
+use twine_rs_macros::TwineShell;
 
 use crate::error::TwineCtlError;
 
