@@ -90,7 +90,7 @@ async fn batch_loop() {
                 Ok(active_dataset) => {
                     assert_eq!(active_dataset.as_hex_string(), dataset.as_hex_string());
                     log::info!("{active_dataset:?}")
-                },
+                }
                 Err(e) => panic!("Failed to fetch active dataset: {e}"),
             }
         }
