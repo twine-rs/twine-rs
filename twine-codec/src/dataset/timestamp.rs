@@ -85,7 +85,7 @@ mod tests {
 
         assert_eq!(timestamp.seconds(), 0x1234_5678);
         assert_eq!(timestamp.ticks(), 0x9abc >> 1);
-        assert_eq!(timestamp.is_authoritative(), true);
+        assert!(timestamp.is_authoritative());
     }
 
     #[test]

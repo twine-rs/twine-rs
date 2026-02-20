@@ -504,7 +504,7 @@ mod tests {
             .enable_obtain_network_key()
             .build()
             .expect("Failed to build policy with O bit enabled");
-        assert_eq!(policy.obtain_network_key_enabled(), true);
+        assert!(policy.obtain_network_key_enabled());
         assert_eq!(std::format!("{}", policy), "672 o 0");
 
         let inner = policy.0;
@@ -514,7 +514,7 @@ mod tests {
             .disable_obtain_network_key()
             .build()
             .expect("Failed to build policy with o bit enabled");
-        assert_eq!(policy.obtain_network_key_enabled(), false);
+        assert!(!policy.obtain_network_key_enabled());
 
         let inner = policy.0;
         assert_eq!(inner & 0x0000_8000, 0);
@@ -527,7 +527,7 @@ mod tests {
             .enable_native_commissioning()
             .build()
             .expect("Failed to build policy with n bit enabled");
-        assert_eq!(policy.native_commissioning_enabled(), true);
+        assert!(policy.native_commissioning_enabled());
         assert_eq!(std::format!("{}", policy), "672 n 0");
 
         let inner = policy.0;
@@ -537,7 +537,7 @@ mod tests {
             .disable_native_commissioning()
             .build()
             .expect("Failed to build policy with n bit disabled");
-        assert_eq!(policy.native_commissioning_enabled(), false);
+        assert!(!policy.native_commissioning_enabled());
 
         let inner = policy.0;
         assert_eq!(inner & n_bit_mask, 0);
@@ -550,7 +550,7 @@ mod tests {
             .version_threshold(VersionThreshold::ProtocolVersion2)
             .build()
             .expect("Failed to build policy with r bit enabled");
-        assert_eq!(policy.legacy_routers_enabled(), true);
+        assert!(policy.legacy_routers_enabled());
         assert_eq!(std::format!("{}", policy), "672 r 0");
 
         let inner = policy.0;
@@ -560,7 +560,7 @@ mod tests {
             .disable_legacy_routers()
             .build()
             .expect("Failed to build policy with r bit disabled");
-        assert_eq!(policy.legacy_routers_enabled(), false);
+        assert!(!policy.legacy_routers_enabled());
 
         let inner = policy.0;
         assert_eq!(inner & r_bit_mask, 0);
@@ -573,7 +573,7 @@ mod tests {
             .enable_external_commissioner()
             .build()
             .expect("Failed to build policy with c bit enabled");
-        assert_eq!(policy.external_commissioner_enabled(), true);
+        assert!(policy.external_commissioner_enabled());
         assert_eq!(std::format!("{}", policy), "672 c 0");
 
         let inner = policy.0;
@@ -583,7 +583,7 @@ mod tests {
             .disable_external_commissioner()
             .build()
             .expect("Failed to build policy with c bit disabled");
-        assert_eq!(policy.external_commissioner_enabled(), false);
+        assert!(!policy.external_commissioner_enabled());
 
         let inner = policy.0;
         assert_eq!(inner & c_bit_mask, 0);
@@ -596,7 +596,7 @@ mod tests {
             .enable_commercial_commissioning()
             .build()
             .expect("Failed to build policy with ccm bit enabled");
-        assert_eq!(policy.commercial_commissioning_mode_enabled(), true);
+        assert!(policy.commercial_commissioning_mode_enabled());
         assert_eq!(std::format!("{}", policy), "672 C 0");
 
         let inner = policy.0;
@@ -606,7 +606,7 @@ mod tests {
             .disable_commercial_commissioning()
             .build()
             .expect("Failed to build policy with ccm bit disabled");
-        assert_eq!(policy.commercial_commissioning_mode_enabled(), false);
+        assert!(!policy.commercial_commissioning_mode_enabled());
 
         let inner = policy.0;
         assert_eq!(inner & ccm_bit_mask, ccm_bit_mask);
@@ -619,7 +619,7 @@ mod tests {
             .enable_autonomous_enrollment()
             .build()
             .expect("Failed to build policy with ae bit enabled");
-        assert_eq!(policy.autonomous_enrollment_enabled(), true);
+        assert!(policy.autonomous_enrollment_enabled());
         assert_eq!(std::format!("{}", policy), "672 e 0");
 
         let inner = policy.0;
@@ -629,7 +629,7 @@ mod tests {
             .disable_autonomous_enrollment()
             .build()
             .expect("Failed to build policy with ae bit disabled");
-        assert_eq!(policy.autonomous_enrollment_enabled(), false);
+        assert!(!policy.autonomous_enrollment_enabled());
 
         let inner = policy.0;
         assert_eq!(inner & ae_bit_mask, ae_bit_mask);
@@ -642,7 +642,7 @@ mod tests {
             .enable_network_key_provisioning()
             .build()
             .expect("Failed to build policy with np bit enabled");
-        assert_eq!(policy.network_key_provisioning_enabled(), true);
+        assert!(policy.network_key_provisioning_enabled());
         assert_eq!(std::format!("{}", policy), "672 p 0");
 
         let inner = policy.0;
@@ -652,7 +652,7 @@ mod tests {
             .disable_network_key_provisioning()
             .build()
             .expect("Failed to build policy with np bit disabled");
-        assert_eq!(policy.network_key_provisioning_enabled(), false);
+        assert!(!policy.network_key_provisioning_enabled());
 
         let inner = policy.0;
         assert_eq!(inner & np_bit_mask, np_bit_mask);
@@ -665,7 +665,7 @@ mod tests {
             .enable_non_ccm_routers()
             .build()
             .expect("Failed to build policy with ncr bit enabled");
-        assert_eq!(policy.non_ccm_routers_enabled(), true);
+        assert!(policy.non_ccm_routers_enabled());
         assert_eq!(std::format!("{}", policy), "672 R 0");
 
         let inner = policy.0;
@@ -675,7 +675,7 @@ mod tests {
             .disable_non_ccm_routers()
             .build()
             .expect("Failed to build policy with ncr bit disabled");
-        assert_eq!(policy.non_ccm_routers_enabled(), false);
+        assert!(!policy.non_ccm_routers_enabled());
 
         let inner = policy.0;
         assert_eq!(inner & ncr_bit_mask, ncr_bit_mask);
@@ -687,7 +687,7 @@ mod tests {
             .version_threshold(VersionThreshold::ProtocolVersion4)
             .build()
             .expect("Failed to build policy with Protocol Version 4 threshold");
-        assert_eq!(policy.legacy_routers_enabled(), false);
+        assert!(!policy.legacy_routers_enabled());
 
         assert!(matches!(
             policy.version_threshold(),
@@ -723,7 +723,7 @@ mod tests {
         let policy = policy.expect("Failed to build security policy");
 
         log::debug!("Policy: {policy:?}");
-        assert_eq!(false, policy.obtain_network_key_enabled());
+        assert!(!policy.obtain_network_key_enabled());
         assert_eq!(std::format!("{}", policy), "672 C 1");
     }
 }
