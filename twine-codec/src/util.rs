@@ -51,7 +51,7 @@ mod tests {
         for _ in 0..1000 {
             let value = random_range_u16(10..=20);
             assert!(
-                value >= 10 && value <= 20,
+                (10..=20).contains(&value),
                 "value {} out of range 10..=20",
                 value
             );
