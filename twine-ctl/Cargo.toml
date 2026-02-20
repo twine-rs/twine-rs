@@ -22,8 +22,8 @@ serialport = { version = "4.8.1", features = ["serde", "usbportinfo-interface"] 
 thiserror.workspace = true
 tokio = { version = "1.49.0", features = ["full"] }
 tokio-serial = "5.4.5"
-twine-codec = { path = "../twine-codec", default-features = false, features = ["alloc"] }
-twine-rs-macros = { path = "../twine-macros" }
+twine-codec = { version = "0.1", path = "../twine-codec", default-features = false, features = ["alloc"] }
+twine-rs-macros = { version = "0.1", path = "../twine-macros" }
 
 [[bin]]
 name = "batch-join"
