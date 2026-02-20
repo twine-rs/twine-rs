@@ -19,8 +19,8 @@ bytes.workspace = true
 hex = { workspace = true }
 log.workspace = true
 thiserror.workspace = true
-twine-macros = { path = "../twine-macros" }
-twine-tlv = { path = "../twine-tlv", default-features = false }
+twine-macros = { version = "0.1", path = "../twine-macros" }
+twine-tlv = { version = "0.1", path = "../twine-tlv", default-features = false }
 typed-builder.workspace = true
 serde = { workspace = true, optional = true }
 zbus = { workspace = true, optional = true }
