@@ -1,6 +1,6 @@
 use bytes::{Buf, BufMut};
 
-use twine_macros::Tlv;
+use twine_rs_macros::Tlv;
 use twine_tlv::{
     write_tlv, DecodeTlvUnchecked, DecodeTlvValueUnchecked, GetTlvLength, TlvCollection,
     TlvConstantMetadata, TlvLength, TlvMetadata, TlvType, TryEncodeTlv, TryEncodeTlvValue,

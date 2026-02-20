@@ -1,6 +1,6 @@
 use bytes::{Buf, BufMut};
 
-use twine_macros::Tlv;
+use twine_rs_macros::Tlv;
 use twine_tlv::{DecodeTlvValueUnchecked, TlvCollection, TlvLength, TryEncodeTlvValue};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Tlv)]

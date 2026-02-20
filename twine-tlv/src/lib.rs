@@ -147,7 +147,7 @@ mod tests {
     use crate::test_utils::{
         test_tlv_extended_data_type, TestTlvData, TestTlvExtendedDataType, TEST_TLV_DATA,
     };
-    use twine_macros::Tlv;
+    use twine_rs_macros::Tlv;
 
     #[derive(Clone, Copy, Debug, Eq, PartialEq, Tlv)]
     #[tlv(tlv_type = 0x00, tlv_length = 3)]

@@ -18,4 +18,4 @@ thiserror.workspace = true
 [dev-dependencies]
 env_logger.workspace = true
 insta.workspace = true
-twine-macros = { version = "0.1", path = "../twine-macros" }
+twine-rs-macros = { version = "0.1", path = "../twine-macros" }

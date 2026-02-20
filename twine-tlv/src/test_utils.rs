@@ -8,7 +8,7 @@
 use alloc::vec::Vec;
 use bytes::{Buf, BufMut};
 
-use twine_macros::Tlv;
+use twine_rs_macros::Tlv;
 
 use crate::{traits::TlvLength, DecodeTlvValueUnchecked, TryEncodeTlvValue, TwineTlvError};
 
