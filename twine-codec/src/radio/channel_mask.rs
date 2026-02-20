@@ -193,7 +193,7 @@ mod tests {
     #[test]
     fn success_decode_tlv() {
         let tlv_bytes: [u8; 8] = [53, 6, 0, 4, 0, 31, 255, 224];
-        let channel_mask = ChannelMask::decode_tlv_unchecked(&tlv_bytes);
+        let channel_mask = ChannelMask::decode_tlv_unchecked(tlv_bytes);
         assert_eq!(channel_mask.page, ChannelPageMask::PAGE_0);
         assert_eq!(channel_mask.len, 4);
         assert_eq!(channel_mask.mask(), 0x07FF_F800);

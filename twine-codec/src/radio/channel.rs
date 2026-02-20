@@ -85,7 +85,7 @@ mod tests {
 
     #[test]
     fn success_decode_unchecked_meshcop_tlv_for_channel() {
-        let test = Channel::decode_tlv_unchecked(&CHANNEL_TLV_BYTES);
+        let test = Channel::decode_tlv_unchecked(CHANNEL_TLV_BYTES);
         assert_eq!(test.page(), 0);
         assert_eq!(test.channel(), 22);
     }

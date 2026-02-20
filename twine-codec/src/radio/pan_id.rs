@@ -83,7 +83,7 @@ mod tests {
 
     #[test]
     fn success_try_decode_meshcop_tlv_for_pan_id() {
-        let test = PanId::decode_tlv_unchecked(&PAN_ID_TLV_BYTES);
+        let test = PanId::decode_tlv_unchecked(PAN_ID_TLV_BYTES);
         assert_eq!(test.0, 0xdead);
     }
 
