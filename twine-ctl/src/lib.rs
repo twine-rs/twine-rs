@@ -6,6 +6,8 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 mod error;
+pub mod device;
+pub mod pool;
 mod shell;
 
 pub use error::TwineCtlError;
