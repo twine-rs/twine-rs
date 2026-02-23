@@ -7,7 +7,7 @@
 
 bitflags::bitflags! {
     /// Radio capabilities
-    #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
+    #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
     pub struct RadioCapabilities: u8 {
         /// Radio supports no capability
         const NONE = 0b0000_0000;

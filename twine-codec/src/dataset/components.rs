@@ -7,7 +7,7 @@
 
 bitflags::bitflags! {
     /// Represents the presence of different components in an Active or Pending Operational Dataset
-    #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
+    #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
     pub struct Components: u16 {
         const ACTIVE = 1;
         const PENDING = 1 << 1;

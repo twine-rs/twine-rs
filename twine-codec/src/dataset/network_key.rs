@@ -16,7 +16,7 @@ use twine_rs_macros::Tlv;
 const NETWORK_KEY_SIZE: usize = 16;
 
 /// A Thread Network Key
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Tlv)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Tlv)]
 #[tlv(tlv_type = 0x05, tlv_length = 16, derive_inner)]
 pub struct NetworkKey([u8; NETWORK_KEY_SIZE]);
 
