@@ -12,6 +12,7 @@ std = ["alloc"]
 alloc = []
 build-batch-join = ["std", "dep:clap", "dep:env_logger", "twine-codec/std"]
 build-info-dump = ["dep:clap", "dep:env_logger"]
+build-dataset-dump = ["dep:clap"]
 
 [dependencies]
 async-trait.workspace = true
@@ -32,6 +33,10 @@ required-features = ["build-batch-join"]
 [[bin]]
 name = "info-dump"
 required-features = ["build-info-dump"]
+
+[[bin]]
+name = "dataset-dump"
+required-features = ["build-dataset-dump"]
 
 [[test]]
 name = "batch-join-loop"
