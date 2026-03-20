@@ -766,4 +766,46 @@ mod tests {
         assert!(!policy.obtain_network_key_enabled());
         assert_eq!(std::format!("{}", policy), "672 C 1");
     }
+
+    #[test]
+    fn to_ble_link_bit() {
+        let to_ble_bit_mask = 0x0000_0080;
+
+        let policy = SecurityPolicyBuilder::with_disabled_policy()
+            .enable_to_ble_link()
+            .build()
+            .unwrap();
+        assert!(policy.to_ble_link_enabled());
+        let inner = policy.0;
+        assert_eq!(inner & to_ble_bit_mask, 0);
+
+        let policy = SecurityPolicyBuilder::with_disabled_policy()
+            .disable_to_ble_link()
+            .build()
+            .unwrap();
+        assert!(!policy.to_ble_link_enabled());
+        let inner = policy.0;
+        assert_eq!(inner & to_ble_bit_mask, to_ble_bit_mask);
+    }
+
+    #[test]
+    fn rotation_time_hours() {
+        let policy = SecurityPolicyBuilder::with_disabled_policy()
+            .rotation_time_hours(100)
+            .build()
+            .unwrap();
+        assert_eq!(policy.rotation_time_hours(), 100);
+    }
+
+    #[test]
+    fn rotation_time_hours_default() {
+        assert_eq!(SecurityPolicy::default().rotation_time_hours(), 672);
+    }
+
+    #[test]
+    fn set_rotation_time_hours() {
+        let mut policy = SecurityPolicy::default();
+        policy.set_rotation_time_hours(500);
+        assert_eq!(policy.rotation_time_hours(), 500);
+    }
 }
