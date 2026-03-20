@@ -20,6 +20,10 @@ impl ExtendedPanId {
         crate::fill_random_bytes(&mut bytes);
         Self(bytes)
     }
+
+    pub fn as_bytes(&self) -> &[u8; EXT_PAN_ID_SIZE] {
+        &self.0
+    }
 }
 
 impl From<ExtendedPanId> for u64 {
