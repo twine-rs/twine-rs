@@ -89,6 +89,37 @@ mod tests {
     }
 
     #[test]
+    fn not_authoritative() {
+        let timestamp = Timestamp::from((1, 0, Authoritative(false)));
+        assert!(!timestamp.is_authoritative());
+    }
+
+    #[test]
+    fn ticks_zero() {
+        let timestamp = Timestamp::from((1, 0, Authoritative(false)));
+        assert_eq!(timestamp.ticks(), 0);
+    }
+
+    #[test]
+    fn ticks_max() {
+        let timestamp = Timestamp::from((1, 0x7fff, Authoritative(false)));
+        assert_eq!(timestamp.ticks(), 0x3fff);
+    }
+
+    #[test]
+    fn seconds_zero() {
+        let timestamp = Timestamp::from((0, 0, Authoritative(false)));
+        assert_eq!(timestamp.seconds(), 0);
+    }
+
+    #[test]
+    fn display_shows_seconds() {
+        use alloc::format;
+        let timestamp = Timestamp::from((42, 0, Authoritative(false)));
+        assert_eq!(format!("{}", timestamp), "42");
+    }
+
+    #[test]
     fn success_active_timestamp_to_tlv() {
         let timestamp = Timestamp::from((0x1234_5678, 0x9abc, Authoritative(true)));
         let timestamp = ActiveTimestamp::from(timestamp);
