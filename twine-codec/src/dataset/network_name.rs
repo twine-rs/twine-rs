@@ -129,4 +129,16 @@ mod tests {
         let name = NetworkName::from_str("ThreadNet").unwrap();
         assert_eq!(name.as_str(), name.to_string());
     }
+
+    #[test]
+    fn from_str_rejects_over_max_length() {
+        assert!(NetworkName::from_str("0123456789abcdefg").is_err());
+    }
+
+    #[test]
+    fn from_str_rejects_well_over_max_length() {
+        assert!(
+            NetworkName::from_str("this name is definitely too long for a thread network").is_err()
+        );
+    }
 }
