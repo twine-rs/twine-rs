@@ -21,8 +21,9 @@ mod role;
 mod util;
 
 pub use dataset::{
-    Components, ExtendedPanId, MeshLocalPrefix, NetworkKey, NetworkName, OperationalDataset, Pskc,
-    SecurityPolicy, SecurityPolicyBuilder, Timestamp, VersionThreshold,
+    ActiveTimestamp, Authoritative, Components, ExtendedPanId, MeshLocalPrefix, NetworkKey,
+    NetworkName, OperationalDataset, Pskc, SecurityPolicy, SecurityPolicyBuilder, Timestamp,
+    VersionThreshold,
 };
 pub use error::TwineCodecError;
 pub use radio::{
