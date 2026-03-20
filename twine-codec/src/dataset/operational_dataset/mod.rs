@@ -130,6 +130,12 @@ impl OperationalDataset {
     }
 }
 
+impl From<TlvCollection<OPERATIONAL_DATASET_MAX_SIZE>> for OperationalDataset {
+    fn from(collection: TlvCollection<OPERATIONAL_DATASET_MAX_SIZE>) -> Self {
+        Self { collection }
+    }
+}
+
 impl FromStr for OperationalDataset {
     type Err = TwineCodecError;
 
