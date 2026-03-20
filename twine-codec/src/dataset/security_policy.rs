@@ -148,6 +148,46 @@ impl SecurityPolicy {
         !self.get_non_ccm_routers_disabled()
     }
 
+    pub fn set_rotation_time_hours(&mut self, hours: u16) {
+        self.set_rotation_time(hours);
+    }
+
+    pub fn set_obtain_network_key(&mut self, enabled: bool) {
+        self.set_obtain_network_key_enabled(enabled);
+    }
+
+    pub fn set_native_commissioning(&mut self, enabled: bool) {
+        self.set_native_commissioning_enabled(enabled);
+    }
+
+    pub fn set_legacy_routers(&mut self, enabled: bool) {
+        self.set_legacy_routers_enabled(enabled);
+    }
+
+    pub fn set_external_commissioner(&mut self, enabled: bool) {
+        self.set_external_commissioning_enabled(enabled);
+    }
+
+    pub fn set_commercial_commissioning(&mut self, enabled: bool) {
+        self.set_commercial_commissioning_mode_disabled(!enabled);
+    }
+
+    pub fn set_autonomous_enrollment(&mut self, enabled: bool) {
+        self.set_autonomous_enrollment_disabled(!enabled);
+    }
+
+    pub fn set_network_key_provisioning(&mut self, enabled: bool) {
+        self.set_network_key_provisioning_disabled(!enabled);
+    }
+
+    pub fn set_to_ble_link(&mut self, enabled: bool) {
+        self.set_to_ble_link_disabled(!enabled);
+    }
+
+    pub fn set_non_ccm_routers(&mut self, enabled: bool) {
+        self.set_non_ccm_routers_disabled(!enabled);
+    }
+
     /// Fetch the Thread Protocol Version threshold.
     ///
     /// If the protocol version is unknown, returns the value as an error.
