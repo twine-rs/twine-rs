@@ -82,6 +82,47 @@ mod tests {
     }
 
     #[test]
+    fn new_and_get() {
+        assert_eq!(PanId::new(0x1234).get(), 0x1234);
+    }
+
+    #[test]
+    fn roundtrip_u16() {
+        let value = 0xabcd_u16;
+        assert_eq!(u16::from(PanId::from(value)), value);
+    }
+
+    #[test]
+    fn display() {
+        use alloc::format;
+        assert_eq!(format!("{}", PanId::new(0xdead)), "0xdead");
+        assert_eq!(format!("{}", PanId::new(0x0001)), "0x0001");
+    }
+
+    #[test]
+    fn from_str_without_prefix() {
+        assert_eq!(PanId::from_str("dead").unwrap().get(), 0xdead);
+    }
+
+    #[test]
+    fn from_str_with_prefix() {
+        assert_eq!(PanId::from_str("0xdead").unwrap().get(), 0xdead);
+    }
+
+    #[test]
+    fn from_str_invalid() {
+        assert!(PanId::from_str("not_hex").is_err());
+    }
+
+    #[test]
+    fn random_in_valid_range() {
+        for _ in 0..100 {
+            let pan_id = PanId::random();
+            assert!(pan_id.get() >= 0x0001 && pan_id.get() <= 0xfffe);
+        }
+    }
+
+    #[test]
     fn success_try_decode_meshcop_tlv_for_pan_id() {
         let test = PanId::decode_tlv_unchecked(PAN_ID_TLV_BYTES);
         assert_eq!(test.0, 0xdead);
