@@ -37,3 +37,42 @@ impl core::fmt::Display for Rloc16 {
         write!(f, "0x{:04x}", self.0)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use alloc::format;
+
+    use super::*;
+
+    #[test]
+    fn roundtrip_u16() {
+        let value = 0xdead_u16;
+        assert_eq!(u16::from(Rloc16::from(value)), value);
+    }
+
+    #[test]
+    fn display_zero() {
+        assert_eq!(format!("{}", Rloc16::from(0u16)), "0x0000");
+    }
+
+    #[test]
+    fn display_max() {
+        assert_eq!(format!("{}", Rloc16::from(u16::MAX)), "0xffff");
+    }
+
+    #[test]
+    fn display_known_value() {
+        assert_eq!(format!("{}", Rloc16::from(0xb400_u16)), "0xb400");
+    }
+
+    #[test]
+    fn from_str_valid() {
+        let rloc: Rloc16 = "b400".parse().unwrap();
+        assert_eq!(u16::from(rloc), 0xb400);
+    }
+
+    #[test]
+    fn from_str_invalid() {
+        assert!("not_hex".parse::<Rloc16>().is_err());
+    }
+}
