@@ -12,3 +12,9 @@ use twine_rs_macros::Tlv;
 #[derive(Copy, Clone, Debug, Default, Eq, PartialEq, Tlv)]
 #[tlv(tlv_type = 0x34, tlv_length = 4, derive_inner)]
 pub struct DelayTimer(u32);
+
+impl From<u32> for DelayTimer {
+    fn from(value: u32) -> Self {
+        Self(value)
+    }
+}
