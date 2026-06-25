@@ -139,13 +139,8 @@ trait TwineCtlShell {
     /// This is useful after device resets to clear stale output before sending
     /// new commands.
     async fn drain_lines(&mut self, timeout: Duration) -> Result<(), TwineCtlError> {
-        loop {
-            match tokio::time::timeout(timeout, self.next_line()).await {
-                Ok(Ok(Some(line))) => {
-                    log::trace!("Draining line: {}", line.trim());
-                }
-                _ => break,
-            }
+        while let Ok(Ok(Some(line))) = tokio::time::timeout(timeout, self.next_line()).await {
+            log::trace!("Draining line: {}", line.trim());
         }
         Ok(())
     }
