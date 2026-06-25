@@ -155,6 +155,11 @@ impl OperationalDataset {
     remove_type!(remove_mesh_local_prefix, MeshLocalPrefix);
     remove_type!(remove_security_policy, SecurityPolicy);
 
+    #[cfg(any(test, feature = "alloc"))]
+    pub fn diff(&self, other: &Self) -> alloc::vec::Vec<twine_tlv::TlvCollectionDiffEntry> {
+        self.collection.tlv_diff_list_with_data(&other.collection)
+    }
+
     #[cfg(any(test, feature = "std"))]
     pub fn pretty_fmt(&self) {
         std::println!("Operational Dataset: {:?}", self);

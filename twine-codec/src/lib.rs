@@ -32,4 +32,6 @@ pub use radio::{
 };
 pub use rloc16::Rloc16;
 pub use role::NetworkRole;
+#[cfg(any(test, feature = "alloc"))]
+pub use twine_tlv::TlvCollectionDiffEntry;
 pub(crate) use util::{fill_random_bytes, random_range_u16};
