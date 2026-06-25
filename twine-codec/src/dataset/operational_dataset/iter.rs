@@ -94,7 +94,7 @@ impl<'a> Iterator for OperationalDatasetIter<'a> {
     }
 }
 
-fn decode_operational_dataset_item(tlv: &[u8]) -> OperationalDatasetItem<'_> {
+pub fn decode_operational_dataset_item(tlv: &[u8]) -> OperationalDatasetItem<'_> {
     decode_dataset_tlv_unchecked!(tlv, {
         ActiveTimestamp  => ActiveTimestamp,
         PendingTimestamp => PendingTimestamp,

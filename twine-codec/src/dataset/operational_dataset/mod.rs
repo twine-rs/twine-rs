@@ -19,7 +19,7 @@ use crate::{
 };
 
 mod iter;
-pub use iter::OperationalDatasetIter;
+pub use iter::{decode_operational_dataset_item, OperationalDatasetItem, OperationalDatasetIter};
 
 const OPERATIONAL_DATASET_MAX_SIZE: usize = 256;
 

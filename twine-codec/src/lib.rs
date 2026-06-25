@@ -21,9 +21,10 @@ mod role;
 mod util;
 
 pub use dataset::{
-    ActiveTimestamp, Authoritative, Components, DelayTimer, ExtendedPanId, MeshLocalPrefix,
-    NetworkKey, NetworkName, OperationalDataset, PendingTimestamp, Pskc, SecurityPolicy,
-    SecurityPolicyBuilder, Timestamp, VersionThreshold,
+    decode_operational_dataset_item, ActiveTimestamp, Authoritative, Components, DelayTimer,
+    ExtendedPanId, MeshLocalPrefix, NetworkKey, NetworkName, OperationalDataset,
+    OperationalDatasetItem, PendingTimestamp, Pskc, SecurityPolicy, SecurityPolicyBuilder,
+    Timestamp, VersionThreshold,
 };
 pub use error::TwineCodecError;
 pub use radio::{
