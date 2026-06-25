@@ -188,6 +188,10 @@ impl SecurityPolicy {
         self.set_non_ccm_routers_disabled(!enabled);
     }
 
+    pub fn set_version_threshold_raw(&mut self, value: u8) {
+        self.set_version_threshold(value);
+    }
+
     /// Fetch the Thread Protocol Version threshold.
     ///
     /// If the protocol version is unknown, returns the value as an error.
