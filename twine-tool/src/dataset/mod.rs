@@ -7,7 +7,9 @@
 
 use clap::{Parser, Subcommand};
 
+mod diff;
 mod display;
+mod generate;
 mod modify;
 pub(crate) mod parse;
 
@@ -20,15 +22,21 @@ pub struct Args {
 
 #[derive(Debug, Subcommand)]
 enum DatasetSubcommand {
+    /// Show the difference between two Thread operational datasets
+    Diff(diff::Args),
     /// Display a Thread operational dataset
     Display(display::Args),
+    /// Generate a Thread operational dataset from JSON
+    Generate(generate::Args),
     /// Modify an existing operational dataset
-    Modify(modify::Args),
+    Modify(Box<modify::Args>),
 }
 
 pub fn run(args: Args) -> anyhow::Result<()> {
     match args.command {
+        DatasetSubcommand::Diff(args) => diff::run(args),
         DatasetSubcommand::Display(args) => display::run(args),
-        DatasetSubcommand::Modify(args) => modify::run(args),
+        DatasetSubcommand::Generate(args) => generate::run(args),
+        DatasetSubcommand::Modify(args) => modify::run(*args),
     }
 }

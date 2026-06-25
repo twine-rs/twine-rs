@@ -11,7 +11,7 @@ use std::{
 };
 
 use anyhow::{bail, Context, Result};
-use twine_codec::{Authoritative, OperationalDataset, Timestamp};
+use twine_codec::{Authoritative, OperationalDataset, SecurityPolicy, Timestamp};
 
 pub(crate) fn dataset(s: &str) -> Result<OperationalDataset> {
     let s = s
@@ -58,6 +58,40 @@ pub(crate) fn timestamp(s: &str) -> Result<Timestamp> {
         ticks,
         Authoritative(authoritative),
     )))
+}
+
+/// Parse a security policy string in display format: `"672 onrc 0"`.
+///
+/// The format is `<rotation_hours> <flags> <version_threshold>` where flags
+/// are a subset of `onrcCepLR` representing the enabled policy bits.
+pub(crate) fn security_policy(s: &str) -> Result<SecurityPolicy> {
+    let parts: Vec<&str> = s.splitn(3, ' ').collect();
+    if parts.len() != 3 {
+        bail!("security policy must be in format 'HOURS FLAGS VERSION' ('672 onrc 0')");
+    }
+
+    let rotation_hours: u16 = parts[0]
+        .parse()
+        .context("invalid security policy rotation time hours")?;
+    let flags = parts[1];
+    let version: u8 = parts[2]
+        .parse()
+        .context("invalid security policy version threshold")?;
+
+    let mut policy = SecurityPolicy(0);
+    policy.set_rotation_time_hours(rotation_hours);
+    policy.set_obtain_network_key(flags.contains('o'));
+    policy.set_native_commissioning(flags.contains('n'));
+    policy.set_legacy_routers(flags.contains('r'));
+    policy.set_external_commissioner(flags.contains('c'));
+    policy.set_commercial_commissioning(flags.contains('C'));
+    policy.set_autonomous_enrollment(flags.contains('e'));
+    policy.set_network_key_provisioning(flags.contains('p'));
+    policy.set_to_ble_link(flags.contains('L'));
+    policy.set_non_ccm_routers(flags.contains('R'));
+    policy.set_version_threshold_raw(version);
+
+    Ok(policy)
 }
 
 pub(crate) fn hex_bytes<const N: usize>(s: &str, name: &str) -> Result<[u8; N]> {
