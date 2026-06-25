@@ -148,6 +148,50 @@ impl SecurityPolicy {
         !self.get_non_ccm_routers_disabled()
     }
 
+    pub fn set_rotation_time_hours(&mut self, hours: u16) {
+        self.set_rotation_time(hours);
+    }
+
+    pub fn set_obtain_network_key(&mut self, enabled: bool) {
+        self.set_obtain_network_key_enabled(enabled);
+    }
+
+    pub fn set_native_commissioning(&mut self, enabled: bool) {
+        self.set_native_commissioning_enabled(enabled);
+    }
+
+    pub fn set_legacy_routers(&mut self, enabled: bool) {
+        self.set_legacy_routers_enabled(enabled);
+    }
+
+    pub fn set_external_commissioner(&mut self, enabled: bool) {
+        self.set_external_commissioning_enabled(enabled);
+    }
+
+    pub fn set_commercial_commissioning(&mut self, enabled: bool) {
+        self.set_commercial_commissioning_mode_disabled(!enabled);
+    }
+
+    pub fn set_autonomous_enrollment(&mut self, enabled: bool) {
+        self.set_autonomous_enrollment_disabled(!enabled);
+    }
+
+    pub fn set_network_key_provisioning(&mut self, enabled: bool) {
+        self.set_network_key_provisioning_disabled(!enabled);
+    }
+
+    pub fn set_to_ble_link(&mut self, enabled: bool) {
+        self.set_to_ble_link_disabled(!enabled);
+    }
+
+    pub fn set_non_ccm_routers(&mut self, enabled: bool) {
+        self.set_non_ccm_routers_disabled(!enabled);
+    }
+
+    pub fn set_version_threshold_raw(&mut self, value: u8) {
+        self.set_version_threshold(value);
+    }
+
     /// Fetch the Thread Protocol Version threshold.
     ///
     /// If the protocol version is unknown, returns the value as an error.
@@ -725,5 +769,47 @@ mod tests {
         log::debug!("Policy: {policy:?}");
         assert!(!policy.obtain_network_key_enabled());
         assert_eq!(std::format!("{}", policy), "672 C 1");
+    }
+
+    #[test]
+    fn to_ble_link_bit() {
+        let to_ble_bit_mask = 0x0000_0080;
+
+        let policy = SecurityPolicyBuilder::with_disabled_policy()
+            .enable_to_ble_link()
+            .build()
+            .unwrap();
+        assert!(policy.to_ble_link_enabled());
+        let inner = policy.0;
+        assert_eq!(inner & to_ble_bit_mask, 0);
+
+        let policy = SecurityPolicyBuilder::with_disabled_policy()
+            .disable_to_ble_link()
+            .build()
+            .unwrap();
+        assert!(!policy.to_ble_link_enabled());
+        let inner = policy.0;
+        assert_eq!(inner & to_ble_bit_mask, to_ble_bit_mask);
+    }
+
+    #[test]
+    fn rotation_time_hours() {
+        let policy = SecurityPolicyBuilder::with_disabled_policy()
+            .rotation_time_hours(100)
+            .build()
+            .unwrap();
+        assert_eq!(policy.rotation_time_hours(), 100);
+    }
+
+    #[test]
+    fn rotation_time_hours_default() {
+        assert_eq!(SecurityPolicy::default().rotation_time_hours(), 672);
+    }
+
+    #[test]
+    fn set_rotation_time_hours() {
+        let mut policy = SecurityPolicy::default();
+        policy.set_rotation_time_hours(500);
+        assert_eq!(policy.rotation_time_hours(), 500);
     }
 }

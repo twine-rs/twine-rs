@@ -21,8 +21,10 @@ mod role;
 mod util;
 
 pub use dataset::{
-    Components, ExtendedPanId, MeshLocalPrefix, NetworkKey, NetworkName, OperationalDataset, Pskc,
-    SecurityPolicy, SecurityPolicyBuilder, Timestamp, VersionThreshold,
+    decode_operational_dataset_item, ActiveTimestamp, Authoritative, Components, DelayTimer,
+    ExtendedPanId, MeshLocalPrefix, NetworkKey, NetworkName, OperationalDataset,
+    OperationalDatasetItem, PendingTimestamp, Pskc, SecurityPolicy, SecurityPolicyBuilder,
+    Timestamp, VersionThreshold,
 };
 pub use error::TwineCodecError;
 pub use radio::{
@@ -30,4 +32,6 @@ pub use radio::{
 };
 pub use rloc16::Rloc16;
 pub use role::NetworkRole;
+#[cfg(any(test, feature = "alloc"))]
+pub use twine_tlv::TlvCollectionDiffEntry;
 pub(crate) use util::{fill_random_bytes, random_range_u16};

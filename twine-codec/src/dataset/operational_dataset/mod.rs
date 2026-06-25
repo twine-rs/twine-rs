@@ -19,7 +19,7 @@ use crate::{
 };
 
 mod iter;
-pub use iter::OperationalDatasetIter;
+pub use iter::{decode_operational_dataset_item, OperationalDatasetItem, OperationalDatasetIter};
 
 const OPERATIONAL_DATASET_MAX_SIZE: usize = 256;
 
@@ -27,6 +27,23 @@ macro_rules! decode_type {
     ($name:ident, $decode_type:ty) => {
         pub fn $name(&self) -> Option<$decode_type> {
             self.collection.decode_type_unchecked::<$decode_type>()
+        }
+    };
+}
+
+macro_rules! set_type {
+    ($name:ident, $set_type:ty) => {
+        pub fn $name(&mut self, value: $set_type) -> Result<(), TwineCodecError> {
+            self.collection.replace_or_push(value)?;
+            Ok(())
+        }
+    };
+}
+
+macro_rules! remove_type {
+    ($name:ident, $remove_type:ty) => {
+        pub fn $name(&mut self) {
+            self.collection.remove::<$remove_type>();
         }
     };
 }
@@ -96,6 +113,12 @@ impl OperationalDataset {
             .map(Timestamp::from)
     }
 
+    pub fn set_pending_timestamp(&mut self, timestamp: Timestamp) -> Result<(), TwineCodecError> {
+        let pending_timestamp = PendingTimestamp::from(timestamp);
+        self.collection.replace_or_push(pending_timestamp)?;
+        Ok(())
+    }
+
     decode_type!(delay_timer, DelayTimer);
     decode_type!(channel, Channel);
     // todo: wake_up_channel
@@ -107,6 +130,35 @@ impl OperationalDataset {
     decode_type!(network_key, NetworkKey);
     decode_type!(mesh_local_prefix, MeshLocalPrefix);
     decode_type!(security_policy, SecurityPolicy);
+
+    set_type!(set_delay_timer, DelayTimer);
+    set_type!(set_channel, Channel);
+    set_type!(set_pan_id, PanId);
+    set_type!(set_channel_mask, ChannelMask);
+    set_type!(set_extended_pan_id, ExtendedPanId);
+    set_type!(set_network_name, NetworkName);
+    set_type!(set_pskc, Pskc);
+    set_type!(set_network_key, NetworkKey);
+    set_type!(set_mesh_local_prefix, MeshLocalPrefix);
+    set_type!(set_security_policy, SecurityPolicy);
+
+    remove_type!(remove_active_timestamp, ActiveTimestamp);
+    remove_type!(remove_pending_timestamp, PendingTimestamp);
+    remove_type!(remove_delay_timer, DelayTimer);
+    remove_type!(remove_channel, Channel);
+    remove_type!(remove_pan_id, PanId);
+    remove_type!(remove_channel_mask, ChannelMask);
+    remove_type!(remove_extended_pan_id, ExtendedPanId);
+    remove_type!(remove_network_name, NetworkName);
+    remove_type!(remove_pskc, Pskc);
+    remove_type!(remove_network_key, NetworkKey);
+    remove_type!(remove_mesh_local_prefix, MeshLocalPrefix);
+    remove_type!(remove_security_policy, SecurityPolicy);
+
+    #[cfg(any(test, feature = "alloc"))]
+    pub fn diff(&self, other: &Self) -> alloc::vec::Vec<twine_tlv::TlvCollectionDiffEntry> {
+        self.collection.tlv_diff_list_with_data(&other.collection)
+    }
 
     #[cfg(any(test, feature = "std"))]
     pub fn pretty_fmt(&self) {
@@ -127,6 +179,12 @@ impl OperationalDataset {
             hex_string.push_str(&hex::encode(tlv));
         }
         hex_string
+    }
+}
+
+impl From<TlvCollection<OPERATIONAL_DATASET_MAX_SIZE>> for OperationalDataset {
+    fn from(collection: TlvCollection<OPERATIONAL_DATASET_MAX_SIZE>) -> Self {
+        Self { collection }
     }
 }
 

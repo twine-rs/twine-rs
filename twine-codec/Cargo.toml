@@ -10,7 +10,7 @@ repository.workspace = true
 [features]
 default = ["std"]
 std = ["zbus", "alloc"]
-alloc = ["hex/alloc"]
+alloc = ["hex/alloc", "twine-tlv/alloc"]
 zbus = ["dep:zbus", "serde"]
 serde = ["dep:serde"]
 

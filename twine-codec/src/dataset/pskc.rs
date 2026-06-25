@@ -59,3 +59,51 @@ impl From<[u8; PSKC_MAX_SIZE]> for Pskc {
         Self(value)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use alloc::format;
+    use alloc::vec::Vec;
+
+    use super::*;
+
+    #[test]
+    fn display_all_zeros() {
+        assert_eq!(
+            format!("{}", Pskc::from(0u128)),
+            "00000000000000000000000000000000"
+        );
+    }
+
+    #[test]
+    fn display_known_value() {
+        let pskc = Pskc::from([
+            0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff, 0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77,
+            0x88, 0x99,
+        ]);
+        assert_eq!(format!("{}", pskc), "aabbccddeeff00112233445566778899");
+    }
+
+    #[test]
+    fn roundtrip_u128() {
+        let value = 0xaabb_ccdd_eeff_0011_2233_4455_6677_8899_u128;
+        assert_eq!(u128::from(Pskc::from(value)), value);
+    }
+
+    #[test]
+    fn roundtrip_array() {
+        let bytes = [
+            0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e,
+            0x0f, 0x10,
+        ];
+        assert_eq!(Vec::<u8>::from(Pskc::from(bytes)), bytes);
+    }
+
+    #[test]
+    fn from_u128_be_byte_order() {
+        let pskc = Pskc::from(0x0102_0304_0506_0708_090a_0b0c_0d0e_0f10_u128);
+        let bytes: Vec<u8> = pskc.into();
+        assert_eq!(bytes[0], 0x01);
+        assert_eq!(bytes[15], 0x10);
+    }
+}

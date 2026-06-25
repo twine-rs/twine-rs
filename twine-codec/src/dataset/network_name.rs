@@ -19,6 +19,17 @@ const NETWORK_NAME_MAX_SIZE: usize = 16;
 #[tlv(tlv_type = 0x03, derive_inner)]
 pub struct NetworkName([u8; NETWORK_NAME_MAX_SIZE + 1]);
 
+impl NetworkName {
+    pub fn as_str(&self) -> &str {
+        let len = self
+            .0
+            .iter()
+            .position(|b| *b == 0)
+            .unwrap_or(NETWORK_NAME_MAX_SIZE);
+        core::str::from_utf8(&self.0[..len]).unwrap_or_default()
+    }
+}
+
 impl TlvLength for NetworkName {
     fn tlv_len(&self) -> usize {
         self.0
@@ -69,6 +80,7 @@ impl FromStr for NetworkName {
 
 #[cfg(test)]
 mod tests {
+    use crate::std::string::ToString;
     use alloc::format;
 
     use super::*;
@@ -93,5 +105,40 @@ mod tests {
         let network_name = NetworkName::from_str(EXPECTED_NAME_STR).unwrap();
         let name_str = format!("{}", network_name);
         assert_eq!(name_str, EXPECTED_NAME_STR);
+    }
+
+    #[test]
+    fn as_str_returns_name() {
+        let name = NetworkName::from_str("MyNetwork").unwrap();
+        assert_eq!(name.as_str(), "MyNetwork");
+    }
+
+    #[test]
+    fn as_str_empty_default() {
+        assert_eq!(NetworkName::default().as_str(), "");
+    }
+
+    #[test]
+    fn as_str_max_length() {
+        let name = NetworkName::from_str("0123456789abcdef").unwrap();
+        assert_eq!(name.as_str(), "0123456789abcdef");
+    }
+
+    #[test]
+    fn as_str_matches_display() {
+        let name = NetworkName::from_str("ThreadNet").unwrap();
+        assert_eq!(name.as_str(), name.to_string());
+    }
+
+    #[test]
+    fn from_str_rejects_over_max_length() {
+        assert!(NetworkName::from_str("0123456789abcdefg").is_err());
+    }
+
+    #[test]
+    fn from_str_rejects_well_over_max_length() {
+        assert!(
+            NetworkName::from_str("this name is definitely too long for a thread network").is_err()
+        );
     }
 }

@@ -67,6 +67,10 @@ impl FromStr for NetworkKey {
     type Err = ParseIntError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let s = s
+            .strip_prefix("0x")
+            .or_else(|| s.strip_prefix("0X"))
+            .unwrap_or(s);
         let key = u128::from_str_radix(s, 16)?;
         Ok(Self::from(key))
     }

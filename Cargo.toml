@@ -5,7 +5,8 @@ members = [
     "twine-cli", "twine-codec",
     "twine-macros",
     "twine-tlv", "xtask",
-    "twine-ctl"
+    "twine-ctl",
+    "twine-tool"
 ]
 
 [workspace.package]

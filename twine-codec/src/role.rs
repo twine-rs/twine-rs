@@ -33,3 +33,59 @@ impl FromStr for NetworkRole {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn default_is_disabled() {
+        assert!(matches!(NetworkRole::default(), NetworkRole::Disabled));
+    }
+
+    #[test]
+    fn parse_all_variants_lowercase() {
+        assert!(matches!(
+            "disabled".parse::<NetworkRole>().unwrap(),
+            NetworkRole::Disabled
+        ));
+        assert!(matches!(
+            "detached".parse::<NetworkRole>().unwrap(),
+            NetworkRole::Detached
+        ));
+        assert!(matches!(
+            "child".parse::<NetworkRole>().unwrap(),
+            NetworkRole::Child
+        ));
+        assert!(matches!(
+            "router".parse::<NetworkRole>().unwrap(),
+            NetworkRole::Router
+        ));
+        assert!(matches!(
+            "leader".parse::<NetworkRole>().unwrap(),
+            NetworkRole::Leader
+        ));
+    }
+
+    #[test]
+    fn parse_case_insensitive() {
+        assert!(matches!(
+            "DISABLED".parse::<NetworkRole>().unwrap(),
+            NetworkRole::Disabled
+        ));
+        assert!(matches!(
+            "Router".parse::<NetworkRole>().unwrap(),
+            NetworkRole::Router
+        ));
+        assert!(matches!(
+            "LEADER".parse::<NetworkRole>().unwrap(),
+            NetworkRole::Leader
+        ));
+    }
+
+    #[test]
+    fn parse_invalid() {
+        assert!("unknown".parse::<NetworkRole>().is_err());
+        assert!("".parse::<NetworkRole>().is_err());
+    }
+}

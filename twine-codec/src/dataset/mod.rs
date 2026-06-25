@@ -21,8 +21,10 @@ pub use delay_timer::DelayTimer;
 pub use mesh_local_prefix::MeshLocalPrefix;
 pub use network_key::NetworkKey;
 pub use network_name::NetworkName;
-pub use operational_dataset::OperationalDataset;
+pub use operational_dataset::{
+    decode_operational_dataset_item, OperationalDataset, OperationalDatasetItem,
+};
 pub use pskc::Pskc;
 pub use security_policy::{SecurityPolicy, SecurityPolicyBuilder, VersionThreshold};
-pub use timestamp::{ActiveTimestamp, PendingTimestamp, Timestamp};
+pub use timestamp::{ActiveTimestamp, Authoritative, PendingTimestamp, Timestamp};
 pub use xpan::ExtendedPanId;
