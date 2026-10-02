@@ -7,8 +7,9 @@
 
 use twine_rs_macros::Tlv;
 
-/// An unsigned 32-bit number representing the time delay before the pending
-/// dataset to be applied, in milliseconds.
+/// Time delay before the pending dataset is applied.
+///
+/// An unsigned 32-bit number representing the delay in milliseconds.
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq, Tlv)]
 #[tlv(tlv_type = 0x34, tlv_length = 4, derive_inner)]
 pub struct DelayTimer(u32);

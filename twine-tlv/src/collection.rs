@@ -278,8 +278,9 @@ impl<const CAPACITY: usize> TlvCollection<CAPACITY> {
         tlv.try_encode_tlv(&mut self.buffer[len..])
     }
 
-    /// Remove the first TLV of type `T` from the collection, shifting all
-    /// elements after it to the left.
+    /// Remove the first TLV of type `T` from the collection.
+    ///
+    /// Elements after the removed TLV are shifted to the left.
     pub fn remove<T>(&mut self)
     where
         T: TlvMetadata,
