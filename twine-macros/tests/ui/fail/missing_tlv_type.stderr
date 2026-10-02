@@ -1,0 +1,5 @@
+error: #[tlv(...)] requires `tlv_type` or at least one variant with a `tlv_type`
+  --> tests/ui/fail/missing_tlv_type.rs:11:1
+   |
+11 | #[tlv(tlv_length = 4)]
+   | ^^^^^^^^^^^^^^^^^^^^^^

@@ -1,0 +1,5 @@
+error: `TlvTransparent` can only be derived for structs
+  --> tests/ui/fail/transparent_enum.rs:11:6
+   |
+11 | enum Choice {
+   |      ^^^^^^

@@ -5,9 +5,9 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use twine_rs_macros::Tlv;
+use twine_rs_macros::{Tlv, TlvTransparent};
 
-#[derive(Copy, Clone, Debug, Default, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub struct Authoritative(pub bool);
 
 impl Authoritative {
@@ -16,8 +16,8 @@ impl Authoritative {
     }
 }
 
-#[derive(Copy, Clone, Default, Eq, PartialEq, Tlv)]
-#[tlv(variants = [("Active", tlv_type = 0x0e), ("Pending", tlv_type = 0x33)], tlv_length = 8, derive_inner)]
+#[derive(Clone, Copy, Default, Eq, PartialEq, Tlv, TlvTransparent)]
+#[tlv(variants = [("Active", tlv_type = 0x0e), ("Pending", tlv_type = 0x33)], tlv_length = 8)]
 pub struct Timestamp(u64);
 
 impl Timestamp {
@@ -75,7 +75,6 @@ impl From<(u64, u16, Authoritative)> for Timestamp {
 #[cfg(test)]
 mod tests {
     use super::*;
-
     use twine_tlv::TryEncodeTlv;
 
     #[test]

@@ -7,8 +7,6 @@
 
 use core::str::FromStr;
 
-use twine_tlv::TlvCollection;
-
 use crate::{
     dataset::{
         ActiveTimestamp, DelayTimer, ExtendedPanId, MeshLocalPrefix, NetworkKey, NetworkName,
@@ -17,6 +15,7 @@ use crate::{
     radio::{Channel, ChannelMask, PanId},
     TwineCodecError,
 };
+use twine_tlv::TlvCollection;
 
 mod iter;
 pub use iter::{decode_operational_dataset_item, OperationalDatasetItem, OperationalDatasetIter};
@@ -220,9 +219,10 @@ impl core::fmt::Display for OperationalDataset {
 
 #[cfg(test)]
 mod tests {
-    use crate::{dataset::timestamp::Authoritative, SecurityPolicyBuilder};
-
-    use super::*;
+    use crate::{
+        dataset::{operational_dataset::*, timestamp::Authoritative},
+        SecurityPolicyBuilder,
+    };
 
     #[test]
     fn success_from_str() {

@@ -23,4 +23,3 @@ thiserror.workspace = true
 tokio = { version = "1.49.0", features = ["full"] }
 tokio-serial = "5.4.5"
 twine-codec = { version = "0.1", path = "../twine-codec", default-features = false, features = ["alloc"] }
-twine-rs-macros = { version = "0.1", path = "../twine-macros" }

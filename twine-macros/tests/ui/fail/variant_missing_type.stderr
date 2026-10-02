@@ -1,0 +1,5 @@
+error: each variant requires `tlv_type`
+  --> tests/ui/fail/variant_missing_type.rs:11:19
+   |
+11 | #[tlv(variants = [("Active",)])]
+   |                   ^^^^^^^^^^^

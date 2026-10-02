@@ -7,16 +7,15 @@
 
 use core::str::FromStr;
 
-use twine_rs_macros::Tlv;
-use twine_tlv::prelude::*;
-
 use crate::error::TwineCodecError;
+use twine_rs_macros::{Tlv, TlvTransparent};
+use twine_tlv::prelude::*;
 
 const NETWORK_NAME_MAX_SIZE: usize = 16;
 
 /// A human readable UTF-8 string to identify the Thread network.
-#[derive(Clone, Copy, Debug, Default, Eq, PartialEq, Tlv)]
-#[tlv(tlv_type = 0x03, derive_inner)]
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq, Tlv, TlvTransparent)]
+#[tlv(tlv_type = 0x03)]
 pub struct NetworkName([u8; NETWORK_NAME_MAX_SIZE + 1]);
 
 impl NetworkName {
@@ -80,8 +79,8 @@ impl FromStr for NetworkName {
 
 #[cfg(test)]
 mod tests {
-    use crate::std::string::ToString;
     use alloc::format;
+    use std::string::ToString;
 
     use super::*;
 

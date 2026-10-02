@@ -8,13 +8,13 @@
 #[cfg(any(test, feature = "alloc"))]
 use alloc::vec::Vec;
 
-use twine_rs_macros::Tlv;
+use twine_rs_macros::{Tlv, TlvTransparent};
 
 const PSKC_MAX_SIZE: usize = 16;
 
 /// A Thread PSKc
-#[derive(Clone, Copy, Debug, Default, Eq, PartialEq, Tlv)]
-#[tlv(tlv_type = 0x04, tlv_length = 16, derive_inner)]
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq, Tlv, TlvTransparent)]
+#[tlv(tlv_type = 0x04, tlv_length = PSKC_MAX_SIZE)]
 pub struct Pskc([u8; PSKC_MAX_SIZE]);
 
 impl Pskc {

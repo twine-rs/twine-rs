@@ -6,11 +6,11 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use alloc::vec::Vec;
+
 use bytes::{Buf, BufMut};
 
-use twine_rs_macros::Tlv;
-
 use crate::{traits::TlvLength, DecodeTlvValueUnchecked, TryEncodeTlvValue, TwineTlvError};
+use twine_rs_macros::Tlv;
 
 pub(crate) const TEST_TLV_DATA_TYPE_ZERO: [u8; 3] = [0x00, 0x01, 0xAA];
 

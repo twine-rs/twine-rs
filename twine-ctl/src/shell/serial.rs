@@ -8,14 +8,10 @@
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader, Lines, ReadHalf, WriteHalf};
 use tokio::time::Duration;
 use tokio_serial::{SerialPortBuilderExt, SerialStream};
-use twine_rs_macros::TwineShell;
 
 use crate::error::TwineCtlError;
+use crate::shell::{SkipResultRead, TwineCtlShell};
 
-use super::{SkipResultRead, TwineCtlShell};
-
-#[derive(TwineShell)]
-#[twine_shell(crate_path = "crate")]
 pub struct TwineCtlSerialShell {
     prompt: Option<&'static str>,
     lines: Lines<BufReader<ReadHalf<SerialStream>>>,

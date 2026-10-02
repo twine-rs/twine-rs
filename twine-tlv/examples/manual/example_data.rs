@@ -1,4 +1,6 @@
-//! Example of manually implementing TLV traits for a type that is:
+//! Example of manually implementing TLV traits.
+//!
+//! The example type is:
 //! - A single variant (only represents a single TLV type)
 //! - Multiple fields
 //! - A constant length

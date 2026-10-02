@@ -7,7 +7,7 @@
 
 bitflags::bitflags! {
     /// Radio capabilities
-    #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
+    #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
     pub struct RadioCapabilities: u8 {
         /// Radio supports no capability
         const NONE = 0b0000_0000;
@@ -87,8 +87,9 @@ impl RadioCapabilities {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use std::sync::LazyLock;
+
+    use super::*;
 
     static ALL_CAPS: LazyLock<RadioCapabilities> = LazyLock::new(|| {
         RadioCapabilities::ACK_TIMEOUT

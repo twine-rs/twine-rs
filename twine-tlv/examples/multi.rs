@@ -1,6 +1,6 @@
 use bytes::{Buf, BufMut};
 
-use twine_rs_macros::Tlv;
+use twine_rs_macros::{Tlv, TlvTransparent};
 use twine_tlv::{DecodeTlvValueUnchecked, TlvCollection, TlvLength, TryEncodeTlvValue};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Tlv)]
@@ -31,8 +31,8 @@ impl TryEncodeTlvValue for ExampleData {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Tlv)]
-#[tlv(tlv_type = 0x02, tlv_length = 4, derive_inner)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Tlv, TlvTransparent)]
+#[tlv(tlv_type = 0x02, tlv_length = 4)]
 struct MoreExampleData(u32);
 
 fn main() {

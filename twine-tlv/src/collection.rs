@@ -5,18 +5,18 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use core::ops::Range;
-
 #[cfg(any(test, feature = "alloc"))]
 use alloc::{
     collections::{BTreeMap, BTreeSet},
     vec::Vec,
 };
+use core::ops::Range;
+
 use bytes::Buf;
 
-use crate::{error::TwineTlvError, traits::TryEncodeTlv, GetTlvLength};
-
-use super::{DecodeTlvUnchecked, TlvMetadata};
+use crate::{
+    error::TwineTlvError, traits::TryEncodeTlv, DecodeTlvUnchecked, GetTlvLength, TlvMetadata,
+};
 
 /// A type for working with a collection of TLVs.
 #[derive(Clone, Copy, Debug)]
@@ -278,8 +278,9 @@ impl<const CAPACITY: usize> TlvCollection<CAPACITY> {
         tlv.try_encode_tlv(&mut self.buffer[len..])
     }
 
-    /// Remove the first TLV of type `T` from the collection, shifting all
-    /// elements after it to the left.
+    /// Remove the first TLV of type `T` from the collection.
+    ///
+    /// Elements after the removed TLV are shifted to the left.
     pub fn remove<T>(&mut self)
     where
         T: TlvMetadata,
@@ -407,12 +408,13 @@ impl From<(u8, Option<Vec<u8>>, Option<Vec<u8>>)> for TlvCollectionDiffEntry {
 mod tests {
     use alloc::{format, vec};
 
-    use crate::test_utils::{
-        test_tlv_extended_data_type, TestTlvData, TestTlvDataTypeZero, TestTlvExtendedDataType,
-        TestTlvVariableDataType, TEST_TLV_DATA, TEST_TLV_DATA_TYPE_ZERO,
+    use crate::{
+        collection::*,
+        test_utils::{
+            test_tlv_extended_data_type, TestTlvData, TestTlvDataTypeZero, TestTlvExtendedDataType,
+            TestTlvVariableDataType, TEST_TLV_DATA, TEST_TLV_DATA_TYPE_ZERO,
+        },
     };
-
-    use super::*;
 
     fn log_init() {
         let _ = env_logger::builder().is_test(true).try_init();

@@ -1,0 +1,5 @@
+error: `TlvTransparent` requires a single-field tuple struct
+  --> tests/ui/fail/transparent_named.rs:11:8
+   |
+11 | struct Named {
+   |        ^^^^^

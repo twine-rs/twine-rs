@@ -5,12 +5,13 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use twine_rs_macros::Tlv;
+use twine_rs_macros::{Tlv, TlvTransparent};
 
-/// An unsigned 32-bit number representing the time delay before the pending
-/// dataset to be applied, in milliseconds.
-#[derive(Copy, Clone, Debug, Default, Eq, PartialEq, Tlv)]
-#[tlv(tlv_type = 0x34, tlv_length = 4, derive_inner)]
+/// Time delay before the pending dataset is applied.
+///
+/// An unsigned 32-bit number representing the delay in milliseconds.
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq, Tlv, TlvTransparent)]
+#[tlv(tlv_type = 0x34, tlv_length = 4)]
 pub struct DelayTimer(u32);
 
 impl DelayTimer {
@@ -27,8 +28,9 @@ impl From<u32> for DelayTimer {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use core::time::Duration;
+
+    use super::*;
 
     #[test]
     fn duration_zero() {
