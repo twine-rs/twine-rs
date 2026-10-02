@@ -152,10 +152,10 @@ where
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use crate::test_utils::{
         test_tlv_extended_data_type, TestTlvData, TestTlvExtendedDataType, TEST_TLV_DATA,
     };
+    use crate::*;
     use twine_rs_macros::Tlv;
 
     #[derive(Clone, Copy, Debug, Eq, PartialEq, Tlv)]
