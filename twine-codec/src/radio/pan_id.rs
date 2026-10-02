@@ -12,7 +12,7 @@ use twine_rs_macros::Tlv;
 use crate::TwineCodecError;
 
 /// IEEE 802.15.4 PAN ID
-#[derive(Copy, Clone, Debug, Default, Eq, PartialEq, Tlv)]
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq, Tlv)]
 #[tlv(tlv_type = 0x01, tlv_length = 2, derive_inner)]
 pub struct PanId(u16);
 

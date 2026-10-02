@@ -7,7 +7,7 @@
 
 use twine_rs_macros::Tlv;
 
-#[derive(Copy, Clone, Debug, Default, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub struct Authoritative(pub bool);
 
 impl Authoritative {
@@ -16,7 +16,7 @@ impl Authoritative {
     }
 }
 
-#[derive(Copy, Clone, Default, Eq, PartialEq, Tlv)]
+#[derive(Clone, Copy, Default, Eq, PartialEq, Tlv)]
 #[tlv(variants = [("Active", tlv_type = 0x0e), ("Pending", tlv_type = 0x33)], tlv_length = 8, derive_inner)]
 pub struct Timestamp(u64);
 

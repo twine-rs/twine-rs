@@ -2,7 +2,7 @@ use twine_tlv::prelude::*;
 
 use super::MultiExampleData;
 
-#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct Variant1MultiExampleData(MultiExampleData);
 
 impl TlvMetadata for Variant1MultiExampleData {}

@@ -17,7 +17,7 @@ use crate::TwineCodecError;
 
 bitflags! {
     /// IEEE 802.15.4 channel page mask
-    #[derive(Copy, Clone, Debug, Default, Eq, PartialEq, Hash)]
+    #[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq)]
     pub struct ChannelPageMask: u8 {
         /// 2.4 GHz O-QPSK PHY
         const PAGE_0 = 0;
@@ -26,7 +26,7 @@ bitflags! {
     /// IEEE 802.15.4 Channel Mask
     ///
     /// Each bit in the channel mask represents the selected channel.
-    #[derive(Copy, Clone, Debug, Default, Eq, PartialEq, Hash)]
+    #[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq)]
     pub struct ChannelMaskBits: u32 {
         const CHANNEL_0 = 1 << 0;
         const CHANNEL_1 = 1 << 1;
@@ -84,7 +84,7 @@ impl From<u8> for ChannelPageMask {
 ///
 /// The TLV is required to support multiple channel mask entries, but
 /// practically, this is rarely used.
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Tlv, TypedBuilder)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Tlv, TypedBuilder)]
 #[tlv(tlv_type = 0x35, tlv_length = 6)]
 pub struct ChannelMask {
     page: ChannelPageMask,
