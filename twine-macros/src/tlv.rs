@@ -294,6 +294,16 @@ impl<'a> DeriveCtx<'a> {
         (quote!(#ig), quote!(#tg), quote!(#wc))
     }
 
+    /// Build a `where` clause holding the type's own predicates plus an extra bound.
+    fn where_with_bound(&self, bound: TokenStream) -> TokenStream {
+        let preds = self
+            .generics
+            .where_clause
+            .iter()
+            .flat_map(|w| w.predicates.iter());
+        quote! { where #(#preds,)* #bound }
+    }
+
     /// Implement `TlvType` for the given target type with the specified TLV type byte.
     fn impl_tlv_type(&self, target: &Ident, tlv_type: u8) -> TokenStream {
         let (ig, tg, wc) = self.split_generics();
@@ -360,7 +370,7 @@ impl<'a> DeriveCtx<'a> {
         quote! {
             impl #ig ::twine_tlv::TryEncodeTlv for #target #tg #wc {
                 fn try_encode_tlv(&self, buffer: &mut [u8]) -> Result<usize, ::twine_tlv::TwineTlvError> {
-                    ::twine_tlv::write_tlv(buffer, <Self as ::twine_tlv::TlvType>::TLV_TYPE, &*self)
+                    ::twine_tlv::write_tlv(buffer, <Self as ::twine_tlv::TlvType>::TLV_TYPE, self)
                 }
             }
         }
@@ -385,29 +395,27 @@ impl<'a> DeriveCtx<'a> {
                     }
                 }
             },
-            None => quote! {
-                impl #ig ::twine_tlv::TlvLength for &#target #tg #wc
-                where
-                    #target #tg: ::twine_tlv::TlvLength,
-                {
-                    fn tlv_len(&self) -> usize {
-                        ::twine_tlv::TlvLength::tlv_len(*self)
-                    }
+            None => {
+                let wc = self.where_with_bound(quote!(#target #tg: ::twine_tlv::TlvLength));
+                quote! {
+                    impl #ig ::twine_tlv::TlvLength for &#target #tg #wc {
+                        fn tlv_len(&self) -> usize {
+                            ::twine_tlv::TlvLength::tlv_len(*self)
+                        }
 
-                    fn tlv_len_is_constant() -> bool {
-                        <#target #tg as ::twine_tlv::TlvLength>::tlv_len_is_constant()
+                        fn tlv_len_is_constant() -> bool {
+                            <#target #tg as ::twine_tlv::TlvLength>::tlv_len_is_constant()
+                        }
                     }
                 }
-            },
+            }
         };
 
         let const_meta_ref = if self.tlv_length.is_some() {
+            let wc = self.where_with_bound(quote!(#target #tg: ::twine_tlv::TlvConstantMetadata));
             quote! {
                 #[allow(unused)]
-                impl #ig ::twine_tlv::TlvConstantMetadata for &#target #tg #wc
-                where
-                    #target #tg: ::twine_tlv::TlvConstantMetadata,
-                {
+                impl #ig ::twine_tlv::TlvConstantMetadata for &#target #tg #wc {
                     const TLV_LEN: usize = <#target #tg as ::twine_tlv::TlvConstantMetadata>::TLV_LEN;
                 }
             }
@@ -483,26 +491,26 @@ impl<'a> DeriveCtx<'a> {
     fn impl_variant_struct(&self, variant_ident: &Ident) -> TokenStream {
         let base = self.ident;
         let vis = self.vis;
-        let (_, tg, _) = self.split_generics();
         let generics = self.generics;
+        let (ig, tg, wc) = self.split_generics();
 
         quote! {
             #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-            #vis struct #variant_ident #generics (#base #tg);
+            #vis struct #variant_ident #generics (#base #tg) #wc;
 
-            impl #generics From<#variant_ident #tg> for #base #tg {
+            impl #ig From<#variant_ident #tg> for #base #tg #wc {
                 fn from(value: #variant_ident #tg) -> Self {
                     value.0
                 }
             }
 
-            impl #generics From<#base #tg> for #variant_ident #tg {
+            impl #ig From<#base #tg> for #variant_ident #tg #wc {
                 fn from(value: #base #tg) -> Self {
                     #variant_ident(value)
                 }
             }
 
-            impl #generics core::ops::Deref for #variant_ident #tg {
+            impl #ig ::core::ops::Deref for #variant_ident #tg #wc {
                 type Target = #base #tg;
 
                 fn deref(&self) -> &Self::Target {
