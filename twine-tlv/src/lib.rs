@@ -12,16 +12,18 @@
 //! The primary use case is for use with the Thread networking protocol, but it is not limited to
 //! that use case.
 //!
-//! Custom TLV types can be defined by implementing the [`TryEncodeTlv`](traits::TryEncodeTlv),
-//! [`DecodeTlvUnchecked`](traits::DecodeTlvUnchecked), and [`TlvMetadata`](traits::TlvMetadata)
+//! Custom TLV types can be defined by implementing the [`TryEncodeTlv`],
+//! [`DecodeTlvUnchecked`], and [`TlvMetadata`]
 //! traits. Optionally, if the TLV has a constant length, the [`TlvConstantMetadata`] trait can also
 //! be implemented.
 //!
-//! For convience, the [`Tlv`](twine_macros::Tlv) macro can be used to generate the necessary
-//! boilerplate implementations automatically. While using this macro, the only traits that need to
-//! be implemented are [`DecodeTlvValueUnchecked`](traits::DecodeTlvValueUnchecked),
-//! [`TryEncodeTlvValue`](traits::TryEncodeTlvValue), and potentially [`TlvLength](traits::TlvLength)
-//! if the TLV has a variable length.
+//! For convenience, the `Tlv` derive macro from `twine-rs-macros` can be used to generate the
+//! necessary boilerplate implementations automatically. While using this macro, the only traits
+//! that need to be implemented are [`DecodeTlvValueUnchecked`],
+//! [`TryEncodeTlvValue`], and potentially
+//! [`TlvLength`] if the TLV has a variable length. For a newtype whose TLV
+//! value is exactly its inner field's encoding, the `TlvTransparent` derive generates those value
+//! codec impls as well.
 
 #![no_std]
 
