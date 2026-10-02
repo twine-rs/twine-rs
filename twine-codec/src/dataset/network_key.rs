@@ -10,13 +10,13 @@ use alloc::vec::Vec;
 use core::num::ParseIntError;
 use core::str::FromStr;
 
-use twine_rs_macros::Tlv;
+use twine_rs_macros::{Tlv, TlvTransparent};
 
 const NETWORK_KEY_SIZE: usize = 16;
 
 /// A Thread Network Key
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Tlv)]
-#[tlv(tlv_type = 0x05, tlv_length = NETWORK_KEY_SIZE, derive_inner)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Tlv, TlvTransparent)]
+#[tlv(tlv_type = 0x05, tlv_length = NETWORK_KEY_SIZE)]
 pub struct NetworkKey([u8; NETWORK_KEY_SIZE]);
 
 impl NetworkKey {

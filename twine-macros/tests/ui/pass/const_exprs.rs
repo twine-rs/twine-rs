@@ -5,14 +5,14 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use twine_rs_macros::Tlv;
+use twine_rs_macros::{Tlv, TlvTransparent};
 use twine_tlv::{DecodeTlvUnchecked as _, TlvConstantMetadata, TlvType, TryEncodeTlv as _};
 
 const EXAMPLE_TLV_TYPE: u8 = 0x02;
 const EXAMPLE_SIZE: usize = 8;
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Tlv)]
-#[tlv(tlv_type = EXAMPLE_TLV_TYPE, tlv_length = EXAMPLE_SIZE, derive_inner)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Tlv, TlvTransparent)]
+#[tlv(tlv_type = EXAMPLE_TLV_TYPE, tlv_length = EXAMPLE_SIZE)]
 struct Example([u8; EXAMPLE_SIZE]);
 
 fn main() {

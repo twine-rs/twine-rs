@@ -6,7 +6,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::error::TwineCodecError;
-use twine_rs_macros::Tlv;
+use twine_rs_macros::{Tlv, TlvTransparent};
 
 pub enum VersionThreshold {
     /// Protocol Version 1 (Thread v1.0) or 2 (Thread v1.1.x)
@@ -23,8 +23,8 @@ pub enum VersionThreshold {
 }
 
 bitfield::bitfield! {
-    #[derive(Clone, Copy, Eq, PartialEq, Tlv)]
-    #[tlv(tlv_type = 0x0C, tlv_length = 4, derive_inner)]
+    #[derive(Clone, Copy, Eq, PartialEq, Tlv, TlvTransparent)]
+    #[tlv(tlv_type = 0x0C, tlv_length = 4)]
     pub struct SecurityPolicy(u32);
     impl Debug;
 

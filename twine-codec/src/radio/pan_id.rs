@@ -8,11 +8,11 @@
 use core::str::FromStr;
 
 use crate::TwineCodecError;
-use twine_rs_macros::Tlv;
+use twine_rs_macros::{Tlv, TlvTransparent};
 
 /// IEEE 802.15.4 PAN ID
-#[derive(Clone, Copy, Debug, Default, Eq, PartialEq, Tlv)]
-#[tlv(tlv_type = 0x01, tlv_length = 2, derive_inner)]
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq, Tlv, TlvTransparent)]
+#[tlv(tlv_type = 0x01, tlv_length = 2)]
 pub struct PanId(u16);
 
 impl PanId {

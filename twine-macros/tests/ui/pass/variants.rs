@@ -5,14 +5,13 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use twine_rs_macros::Tlv;
+use twine_rs_macros::{Tlv, TlvTransparent};
 use twine_tlv::{DecodeTlvUnchecked as _, TlvType, TryEncodeTlv as _};
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Tlv)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Tlv, TlvTransparent)]
 #[tlv(
     variants = [("Active", tlv_type = 0x0e), ("Pending", tlv_type = 0x33)],
-    tlv_length = 8,
-    derive_inner
+    tlv_length = 8
 )]
 struct Timestamp(u64);
 

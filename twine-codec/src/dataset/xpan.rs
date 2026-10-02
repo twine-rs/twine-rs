@@ -5,13 +5,13 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use twine_rs_macros::Tlv;
+use twine_rs_macros::{Tlv, TlvTransparent};
 
 pub(crate) const EXT_PAN_ID_SIZE: usize = 8;
 
 /// IEEE 802.15.4 Extended PAN ID
-#[derive(Clone, Copy, Debug, Default, Eq, PartialEq, Tlv)]
-#[tlv(tlv_type = 0x02, tlv_length = EXT_PAN_ID_SIZE, derive_inner)]
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq, Tlv, TlvTransparent)]
+#[tlv(tlv_type = 0x02, tlv_length = EXT_PAN_ID_SIZE)]
 pub struct ExtendedPanId([u8; EXT_PAN_ID_SIZE]);
 
 impl ExtendedPanId {

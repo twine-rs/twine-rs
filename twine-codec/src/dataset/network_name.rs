@@ -8,14 +8,14 @@
 use core::str::FromStr;
 
 use crate::error::TwineCodecError;
-use twine_rs_macros::Tlv;
+use twine_rs_macros::{Tlv, TlvTransparent};
 use twine_tlv::prelude::*;
 
 const NETWORK_NAME_MAX_SIZE: usize = 16;
 
 /// A human readable UTF-8 string to identify the Thread network.
-#[derive(Clone, Copy, Debug, Default, Eq, PartialEq, Tlv)]
-#[tlv(tlv_type = 0x03, derive_inner)]
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq, Tlv, TlvTransparent)]
+#[tlv(tlv_type = 0x03)]
 pub struct NetworkName([u8; NETWORK_NAME_MAX_SIZE + 1]);
 
 impl NetworkName {
