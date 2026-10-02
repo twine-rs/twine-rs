@@ -24,10 +24,13 @@ pub struct Args {
 enum DatasetSubcommand {
     /// Show the difference between two Thread operational datasets
     Diff(diff::Args),
+
     /// Display a Thread operational dataset
     Display(display::Args),
+
     /// Generate a Thread operational dataset from JSON
     Generate(generate::Args),
+
     /// Modify an existing operational dataset
     Modify(Box<modify::Args>),
 }
