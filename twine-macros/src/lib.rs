@@ -9,6 +9,7 @@ mod tlv;
 mod twine_shell;
 
 use proc_macro::TokenStream;
+
 use syn::parse_macro_input;
 
 /// Derive macro for implementing TLV encoding/decoding traits.
@@ -17,7 +18,9 @@ use syn::parse_macro_input;
 #[proc_macro_derive(Tlv, attributes(tlv))]
 pub fn derive_tlv(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as syn::DeriveInput);
-    tlv::expand(&input).into()
+    tlv::expand(&input)
+        .unwrap_or_else(syn::Error::into_compile_error)
+        .into()
 }
 
 /// Derive macro for implementing `TwineCtl` on shell-based interfaces.
@@ -27,7 +30,7 @@ pub fn derive_tlv(input: TokenStream) -> TokenStream {
 ///
 /// # Attributes
 ///
-/// - `#[twine_shell(crate_path = "...")]` — Override the path used to reference the
+/// - `#[twine_shell(crate_path = "...")]` - Override the path used to reference the
 ///   `twine_ctl` crate. Defaults to `::twine_ctl`. Set to `crate` when deriving from
 ///   within the `twine-ctl` crate itself.
 ///
@@ -46,5 +49,7 @@ pub fn derive_tlv(input: TokenStream) -> TokenStream {
 #[proc_macro_derive(TwineShell, attributes(twine_shell))]
 pub fn derive_twine_shell(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as syn::DeriveInput);
-    twine_shell::expand(&input).into()
+    twine_shell::expand(&input)
+        .unwrap_or_else(syn::Error::into_compile_error)
+        .into()
 }

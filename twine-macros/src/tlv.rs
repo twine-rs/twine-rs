@@ -7,7 +7,7 @@
 
 use proc_macro2::TokenStream;
 use quote::quote;
-use syn::{DeriveInput, Expr, ExprLit, Generics, Ident, Lit, Meta};
+use syn::{DeriveInput, Expr, ExprLit, Generics, Ident, Lit, Meta, Result};
 
 /// A variant definition with its own name and TLV type byte.
 struct VariantDef {
@@ -25,9 +25,9 @@ struct VariantDef {
 struct TlvAttr {
     /// The TLV type byte for the base type.
     ///
-    /// Required when there are no variants; optional when variants are present (the first variant's
-    /// `tlv_type` is used for the base type).
-    tlv_type: Option<u8>,
+    /// Taken from an explicit `tlv_type` when present, otherwise from the
+    /// first variant's `tlv_type`.
+    base_tlv_type: u8,
 
     /// The constant TLV value length.
     ///
@@ -46,21 +46,14 @@ struct TlvAttr {
 }
 
 /// Generate all trait impls for `#[derive(Tlv)]`.
-pub(crate) fn expand(input: &DeriveInput) -> TokenStream {
-    let attr = parse_tlv_attr(input);
+pub(crate) fn expand(input: &DeriveInput) -> Result<TokenStream> {
+    let attr = parse_tlv_attr(input)?;
     let ctx = DeriveCtx::new(input, &attr);
 
     let mut tokens = TokenStream::new();
 
-    // Resolve the base type's TLV type: use explicit `tlv_type` if provided,
-    // otherwise use the first variant's `tlv_type`.
-    let base_tlv_type = attr
-        .tlv_type
-        .or_else(|| attr.variants.first().map(|v| v.tlv_type))
-        .expect("#[tlv(...)] requires `tlv_type` or at least one variant");
-
-    // -- Base type impls (always generated) -----------------------------------
-    tokens.extend(ctx.impl_tlv_type(ctx.ident, base_tlv_type));
+    // Base type impls, always generated.
+    tokens.extend(ctx.impl_tlv_type(ctx.ident, attr.base_tlv_type));
     tokens.extend(ctx.impl_tlv_metadata(ctx.ident));
     tokens.extend(ctx.impl_constant_length(ctx.ident));
     tokens.extend(ctx.impl_decode_tlv_unchecked(ctx.ident));
@@ -68,10 +61,10 @@ pub(crate) fn expand(input: &DeriveInput) -> TokenStream {
     tokens.extend(ctx.impl_ref_impls(ctx.ident));
 
     if attr.derive_inner {
-        tokens.extend(ctx.impl_derive_inner(ctx.ident, /* is_variant */ false));
+        tokens.extend(ctx.impl_derive_inner(ctx.ident, /* is_variant */ false)?);
     }
 
-    // -- Variant wrapper types ------------------------------------------------
+    // Variant wrapper types.
     for variant in &attr.variants {
         let variant_ident = Ident::new(&format!("{}{}", variant.name, ctx.ident), ctx.ident.span());
 
@@ -84,37 +77,32 @@ pub(crate) fn expand(input: &DeriveInput) -> TokenStream {
         tokens.extend(ctx.impl_ref_impls(&variant_ident));
 
         if attr.derive_inner {
-            tokens.extend(ctx.impl_derive_inner(&variant_ident, /* is_variant */ true));
+            tokens.extend(ctx.impl_derive_inner(&variant_ident, /* is_variant */ true)?);
         } else {
             tokens.extend(ctx.impl_variant_encode_decode(&variant_ident));
         }
     }
 
-    tokens
+    Ok(tokens)
 }
 
 /// Parse the `#[tlv(...)]` attribute
-fn parse_tlv_attr(input: &DeriveInput) -> TlvAttr {
-    let tlv_attrs: Vec<&syn::Attribute> = input
-        .attrs
-        .iter()
-        .filter(|a| a.path().is_ident("tlv"))
-        .collect();
+fn parse_tlv_attr(input: &DeriveInput) -> Result<TlvAttr> {
+    let mut tlv_attrs = input.attrs.iter().filter(|a| a.path().is_ident("tlv"));
 
-    assert!(
-        !tlv_attrs.is_empty(),
-        "expected exactly one #[tlv(...)] attribute"
-    );
-    assert!(
-        tlv_attrs.len() == 1,
-        "expected exactly one #[tlv(...)] attribute, found {}",
-        tlv_attrs.len()
-    );
+    let attr = tlv_attrs
+        .next()
+        .ok_or_else(|| syn::Error::new(input.ident.span(), "expected a #[tlv(...)] attribute"))?;
 
-    let attr = tlv_attrs[0];
+    if let Some(extra) = tlv_attrs.next() {
+        return Err(syn::Error::new_spanned(
+            extra,
+            "expected exactly one #[tlv(...)] attribute",
+        ));
+    }
+
     let nested = attr
-        .parse_args_with(syn::punctuated::Punctuated::<Meta, syn::Token![,]>::parse_terminated)
-        .expect("invalid #[tlv(...)] syntax");
+        .parse_args_with(syn::punctuated::Punctuated::<Meta, syn::Token![,]>::parse_terminated)?;
 
     let mut tlv_type: Option<u8> = None;
     let mut tlv_length: Option<usize> = None;
@@ -130,52 +118,60 @@ fn parse_tlv_attr(input: &DeriveInput) -> TlvAttr {
             // `key = value` pairs
             Meta::NameValue(nv) => {
                 if nv.path.is_ident("tlv_type") {
-                    tlv_type = Some(parse_u8_expr(&nv.value));
+                    tlv_type = Some(parse_int_lit(&nv.value, "tlv_type")?);
                 } else if nv.path.is_ident("tlv_length") {
-                    tlv_length = Some(parse_usize_expr(&nv.value));
+                    tlv_length = Some(parse_int_lit(&nv.value, "tlv_length")?);
                 } else if nv.path.is_ident("variants") {
-                    variants = parse_variant_array(&nv.value);
+                    variants = parse_variant_array(&nv.value)?;
                 } else {
-                    panic!("unknown #[tlv] key: {:?}", nv.path.get_ident());
+                    return Err(syn::Error::new_spanned(
+                        &nv.path,
+                        "unknown #[tlv(...)] key, expected `tlv_type`, `tlv_length`, or `variants`",
+                    ));
                 }
             }
-            other => panic!("unexpected meta in #[tlv(...)]: {other:?}"),
+            other => {
+                return Err(syn::Error::new_spanned(
+                    other,
+                    "expected `derive_inner` or a `key = value` pair in #[tlv(...)]",
+                ));
+            }
         }
     }
 
-    if tlv_type.is_none() && variants.is_empty() {
-        panic!("#[tlv(...)] requires `tlv_type` or at least one variant with a tlv_type");
-    }
+    let base_tlv_type = tlv_type
+        .or_else(|| variants.first().map(|v| v.tlv_type))
+        .ok_or_else(|| {
+            syn::Error::new_spanned(
+                attr,
+                "#[tlv(...)] requires `tlv_type` or at least one variant with a `tlv_type`",
+            )
+        })?;
 
-    TlvAttr {
-        tlv_type,
+    Ok(TlvAttr {
+        base_tlv_type,
         tlv_length,
         variants,
         derive_inner,
-    }
+    })
 }
 
-fn parse_u8_expr(expr: &Expr) -> u8 {
+/// Parse an integer literal expression into the requested integer type.
+fn parse_int_lit<T>(expr: &Expr, key: &str) -> Result<T>
+where
+    T: core::str::FromStr,
+    T::Err: core::fmt::Display,
+{
     if let Expr::Lit(ExprLit {
         lit: Lit::Int(lit), ..
     }) = expr
     {
-        lit.base10_parse::<u8>()
-            .expect("tlv_type must be a u8 literal")
+        lit.base10_parse::<T>()
     } else {
-        panic!("tlv_type must be an integer literal");
-    }
-}
-
-fn parse_usize_expr(expr: &Expr) -> usize {
-    if let Expr::Lit(ExprLit {
-        lit: Lit::Int(lit), ..
-    }) = expr
-    {
-        lit.base10_parse::<usize>()
-            .expect("tlv_length must be a usize literal")
-    } else {
-        panic!("tlv_length must be an integer literal");
+        Err(syn::Error::new_spanned(
+            expr,
+            format!("`{key}` must be an integer literal"),
+        ))
     }
 }
 
@@ -183,24 +179,23 @@ fn parse_usize_expr(expr: &Expr) -> usize {
 ///
 /// Each element is a tuple expression whose first element is a string literal
 /// (the variant name) and whose remaining elements are `key = value` pairs.
-fn parse_variant_array(expr: &Expr) -> Vec<VariantDef> {
-    let elems = match expr {
-        Expr::Array(arr) => &arr.elems,
-        _ => panic!(
+fn parse_variant_array(expr: &Expr) -> Result<Vec<VariantDef>> {
+    let Expr::Array(arr) = expr else {
+        return Err(syn::Error::new_spanned(
+            expr,
             "variants must be an array of tuples, \
-             e.g. [(\"Active\", tlv_type = 0x0e), (\"Pending\", tlv_type = 0x33)]"
-        ),
+             e.g. [(\"Active\", tlv_type = 0x0e), (\"Pending\", tlv_type = 0x33)]",
+        ));
     };
 
-    elems
+    arr.elems
         .iter()
         .map(|e| {
-            let tuple = match e {
-                Expr::Tuple(t) => t,
-                _ => panic!(
-                    "each variant must be a tuple, \
-                     e.g. (\"Name\", tlv_type = 0xNN)"
-                ),
+            let Expr::Tuple(tuple) = e else {
+                return Err(syn::Error::new_spanned(
+                    e,
+                    "each variant must be a tuple, e.g. (\"Name\", tlv_type = 0xNN)",
+                ));
             };
 
             let mut iter = tuple.elems.iter();
@@ -210,34 +205,53 @@ fn parse_variant_array(expr: &Expr) -> Vec<VariantDef> {
                 Some(Expr::Lit(ExprLit {
                     lit: Lit::Str(s), ..
                 })) => s.value(),
-                _ => panic!("first element of variant tuple must be a string literal"),
+                Some(other) => {
+                    return Err(syn::Error::new_spanned(
+                        other,
+                        "first element of a variant tuple must be a string literal",
+                    ));
+                }
+                None => {
+                    return Err(syn::Error::new_spanned(
+                        tuple,
+                        "variant tuple must start with a string literal name",
+                    ));
+                }
             };
 
             // Remaining elements: `key = value` assignments
             let mut variant_tlv_type: Option<u8> = None;
             for elem in iter {
-                if let Expr::Assign(assign) = elem {
-                    if let Expr::Path(path) = &*assign.left {
-                        if path.path.is_ident("tlv_type") {
-                            variant_tlv_type = Some(parse_u8_expr(&assign.right));
-                        } else {
-                            panic!("unknown variant key: {:?}", path.path.get_ident());
-                        }
-                    } else {
-                        panic!("variant key must be an identifier");
-                    }
-                } else {
-                    panic!(
+                let Expr::Assign(assign) = elem else {
+                    return Err(syn::Error::new_spanned(
+                        elem,
                         "variant tuple elements after the name must be \
-                         `key = value` pairs, e.g. tlv_type = 0xNN"
-                    );
+                         `key = value` pairs, e.g. tlv_type = 0xNN",
+                    ));
+                };
+
+                let Expr::Path(path) = &*assign.left else {
+                    return Err(syn::Error::new_spanned(
+                        &assign.left,
+                        "variant key must be an identifier",
+                    ));
+                };
+
+                if path.path.is_ident("tlv_type") {
+                    variant_tlv_type = Some(parse_int_lit(&assign.right, "tlv_type")?);
+                } else {
+                    return Err(syn::Error::new_spanned(
+                        path,
+                        "unknown variant key, expected `tlv_type`",
+                    ));
                 }
             }
 
-            VariantDef {
-                name,
-                tlv_type: variant_tlv_type.expect("each variant requires `tlv_type`"),
-            }
+            let tlv_type = variant_tlv_type.ok_or_else(|| {
+                syn::Error::new_spanned(tuple, "each variant requires `tlv_type`")
+            })?;
+
+            Ok(VariantDef { name, tlv_type })
         })
         .collect()
 }
@@ -248,6 +262,7 @@ struct DeriveCtx<'a> {
     vis: &'a syn::Visibility,
     generics: &'a Generics,
     tlv_length: Option<usize>,
+
     /// The inner type of a single-field tuple struct (if applicable).
     inner_ty: Option<&'a syn::Type>,
 }
@@ -320,15 +335,16 @@ impl<'a> DeriveCtx<'a> {
         }
     }
 
-    /// Implement `DecodeTlvUnchecked` for the given target type, delegating to
-    /// `DecodeTlvValueUnchecked` for TLV value parsing.
+    /// Implement `DecodeTlvUnchecked` for the given target type.
+    ///
+    /// Delegates to `DecodeTlvValueUnchecked` for TLV value parsing.
     fn impl_decode_tlv_unchecked(&self, target: &Ident) -> TokenStream {
         let (ig, tg, wc) = self.split_generics();
         quote! {
             impl #ig ::twine_tlv::DecodeTlvUnchecked for #target #tg #wc {
                 fn decode_tlv_unchecked(buffer: impl AsRef<[u8]>) -> Self {
-                    use ::twine_tlv::GetTlvLength as _;
                     use ::bytes::Buf as _;
+                    use ::twine_tlv::GetTlvLength as _;
                     let mut buffer = buffer.as_ref();
                     let _type_byte = buffer.get_u8();
                     let _len_byte = buffer.get_tlv_length();
@@ -350,8 +366,10 @@ impl<'a> DeriveCtx<'a> {
         }
     }
 
-    /// Implement `TlvType`, `TlvMetadata`, and optionally `TlvConstantMetadata` and
-    /// `TlvLength` for `&T` by delegating to `T`.
+    /// Implement the reference impls for `&T` by delegating to `T`.
+    ///
+    /// Covers `TlvType`, `TlvMetadata`, `TlvLength`, and optionally
+    /// `TlvConstantMetadata`.
     fn impl_ref_impls(&self, target: &Ident) -> TokenStream {
         let (ig, tg, wc) = self.split_generics();
 
@@ -410,17 +428,21 @@ impl<'a> DeriveCtx<'a> {
         }
     }
 
-    /// Delegate `TryEncodeTlvValue` and `DecodeTlvValueUnchecked` to the inner field of a
-    /// single-field tuple struct.
-    fn impl_derive_inner(&self, target: &Ident, is_variant: bool) -> TokenStream {
-        let inner_ty = match self.inner_ty {
-            Some(ty) => ty,
-            None => panic!("`derive_inner` requires a single-field tuple struct"),
-        };
+    /// Delegate the value encode and decode traits to the inner field.
+    ///
+    /// Implements `TryEncodeTlvValue` and `DecodeTlvValueUnchecked` for a
+    /// single-field tuple struct by forwarding to that field.
+    fn impl_derive_inner(&self, target: &Ident, is_variant: bool) -> Result<TokenStream> {
+        let inner_ty = self.inner_ty.ok_or_else(|| {
+            syn::Error::new(
+                self.ident.span(),
+                "`derive_inner` requires a single-field tuple struct",
+            )
+        })?;
         let (ig, tg, wc) = self.split_generics();
         let base = self.ident;
 
-        if is_variant {
+        let tokens = if is_variant {
             // Variant wraps the base type, so the inner value is at `.0.0`.
             quote! {
                 impl #ig ::twine_tlv::TryEncodeTlvValue for #target #tg #wc {
@@ -452,7 +474,9 @@ impl<'a> DeriveCtx<'a> {
                     }
                 }
             }
-        }
+        };
+
+        Ok(tokens)
     }
 
     /// Implement the variant wrapper struct and `From` conversions to/from the base type.
@@ -463,7 +487,7 @@ impl<'a> DeriveCtx<'a> {
         let generics = self.generics;
 
         quote! {
-            #[derive(Copy, Clone, Debug, Eq, PartialEq)]
+            #[derive(Clone, Copy, Debug, Eq, PartialEq)]
             #vis struct #variant_ident #generics (#base #tg);
 
             impl #generics From<#variant_ident #tg> for #base #tg {
@@ -488,8 +512,10 @@ impl<'a> DeriveCtx<'a> {
         }
     }
 
-    /// Implement `TryEncodeTlvValue` and `DecodeTlvValueUnchecked` for a variant wrapper
-    /// by delegating to the inner base type.
+    /// Implement the value encode and decode traits for a variant wrapper.
+    ///
+    /// Implements `TryEncodeTlvValue` and `DecodeTlvValueUnchecked` by
+    /// delegating to the inner base type.
     fn impl_variant_encode_decode(&self, variant_ident: &Ident) -> TokenStream {
         let base = self.ident;
         let (ig, tg, wc) = self.split_generics();
