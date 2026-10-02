@@ -11,7 +11,7 @@ pub(crate) const EXT_PAN_ID_SIZE: usize = 8;
 
 /// IEEE 802.15.4 Extended PAN ID
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq, Tlv)]
-#[tlv(tlv_type = 0x02, tlv_length = 8, derive_inner)]
+#[tlv(tlv_type = 0x02, tlv_length = EXT_PAN_ID_SIZE, derive_inner)]
 pub struct ExtendedPanId([u8; EXT_PAN_ID_SIZE]);
 
 impl ExtendedPanId {

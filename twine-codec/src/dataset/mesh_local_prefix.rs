@@ -10,7 +10,7 @@ use twine_rs_macros::Tlv;
 const MESH_LOCAL_PREFIX_SIZE: usize = 8;
 
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq, Tlv)]
-#[tlv(tlv_type = 0x07, tlv_length = 8, derive_inner)]
+#[tlv(tlv_type = 0x07, tlv_length = MESH_LOCAL_PREFIX_SIZE, derive_inner)]
 pub struct MeshLocalPrefix([u8; MESH_LOCAL_PREFIX_SIZE]);
 
 impl MeshLocalPrefix {
