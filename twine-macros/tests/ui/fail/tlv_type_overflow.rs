@@ -8,7 +8,7 @@
 use twine_rs_macros::Tlv;
 
 #[derive(Tlv)]
-#[tlv(tlv_type = 0x1FF)]
+#[tlv(tlv_type = 0x1FF, tlv_length = 1, derive_inner)]
 struct Overflow([u8; 1]);
 
 fn main() {}

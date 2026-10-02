@@ -12,28 +12,32 @@ use syn::{DeriveInput, Expr, ExprLit, Generics, Ident, Lit, Meta, Result};
 /// A variant definition with its own name and TLV type byte.
 struct VariantDef {
     name: String,
-    tlv_type: u8,
+    tlv_type: Expr,
 }
 
 /// Parsed representation of a single `#[tlv(...)]` attribute.
 ///
+/// Both `tlv_type` and `tlv_length` accept any expression that is valid in a
+/// const context, so a named constant works as well as a literal.
+///
 /// Examples:
 ///   `#[tlv(tlv_type = 0x04, tlv_length = 4)]`
+///   `#[tlv(tlv_type = 0x04, tlv_length = PSKC_MAX_SIZE)]`
 ///   `#[tlv(tlv_type = 0x04)]`
 ///   `#[tlv(variants = [("Active", tlv_type = 0x0e), ("Pending", tlv_type = 0x33)], tlv_length = 8)]`
 ///   `#[tlv(tlv_type = 0x04, derive_inner)]`
 struct TlvAttr {
-    /// The TLV type byte for the base type.
+    /// The TLV type byte for the base type, as a const expression.
     ///
     /// Taken from an explicit `tlv_type` when present, otherwise from the
     /// first variant's `tlv_type`.
-    base_tlv_type: u8,
+    base_tlv_type: Expr,
 
-    /// The constant TLV value length.
+    /// The constant TLV value length, as a const expression.
     ///
     /// When present, `TlvLength` and `TlvConstantMetadata` are generated automatically.
     /// When absent the type has variable length and the caller must implement `TlvLength` manually.
-    tlv_length: Option<usize>,
+    tlv_length: Option<Expr>,
 
     /// Optional list of variant definitions.
     ///
@@ -53,7 +57,7 @@ pub(crate) fn expand(input: &DeriveInput) -> Result<TokenStream> {
     let mut tokens = TokenStream::new();
 
     // Base type impls, always generated.
-    tokens.extend(ctx.impl_tlv_type(ctx.ident, attr.base_tlv_type));
+    tokens.extend(ctx.impl_tlv_type(ctx.ident, &attr.base_tlv_type));
     tokens.extend(ctx.impl_tlv_metadata(ctx.ident));
     tokens.extend(ctx.impl_constant_length(ctx.ident));
     tokens.extend(ctx.impl_decode_tlv_unchecked(ctx.ident));
@@ -69,7 +73,7 @@ pub(crate) fn expand(input: &DeriveInput) -> Result<TokenStream> {
         let variant_ident = Ident::new(&format!("{}{}", variant.name, ctx.ident), ctx.ident.span());
 
         tokens.extend(ctx.impl_variant_struct(&variant_ident));
-        tokens.extend(ctx.impl_tlv_type(&variant_ident, variant.tlv_type));
+        tokens.extend(ctx.impl_tlv_type(&variant_ident, &variant.tlv_type));
         tokens.extend(ctx.impl_tlv_metadata(&variant_ident));
         tokens.extend(ctx.impl_constant_length(&variant_ident));
         tokens.extend(ctx.impl_decode_tlv_unchecked(&variant_ident));
@@ -104,8 +108,8 @@ fn parse_tlv_attr(input: &DeriveInput) -> Result<TlvAttr> {
     let nested = attr
         .parse_args_with(syn::punctuated::Punctuated::<Meta, syn::Token![,]>::parse_terminated)?;
 
-    let mut tlv_type: Option<u8> = None;
-    let mut tlv_length: Option<usize> = None;
+    let mut tlv_type: Option<Expr> = None;
+    let mut tlv_length: Option<Expr> = None;
     let mut variants: Vec<VariantDef> = Vec::new();
     let mut derive_inner = false;
 
@@ -118,9 +122,9 @@ fn parse_tlv_attr(input: &DeriveInput) -> Result<TlvAttr> {
             // `key = value` pairs
             Meta::NameValue(nv) => {
                 if nv.path.is_ident("tlv_type") {
-                    tlv_type = Some(parse_int_lit(&nv.value, "tlv_type")?);
+                    tlv_type = Some(nv.value.clone());
                 } else if nv.path.is_ident("tlv_length") {
-                    tlv_length = Some(parse_int_lit(&nv.value, "tlv_length")?);
+                    tlv_length = Some(nv.value.clone());
                 } else if nv.path.is_ident("variants") {
                     variants = parse_variant_array(&nv.value)?;
                 } else {
@@ -140,7 +144,7 @@ fn parse_tlv_attr(input: &DeriveInput) -> Result<TlvAttr> {
     }
 
     let base_tlv_type = tlv_type
-        .or_else(|| variants.first().map(|v| v.tlv_type))
+        .or_else(|| variants.first().map(|v| v.tlv_type.clone()))
         .ok_or_else(|| {
             syn::Error::new_spanned(
                 attr,
@@ -154,25 +158,6 @@ fn parse_tlv_attr(input: &DeriveInput) -> Result<TlvAttr> {
         variants,
         derive_inner,
     })
-}
-
-/// Parse an integer literal expression into the requested integer type.
-fn parse_int_lit<T>(expr: &Expr, key: &str) -> Result<T>
-where
-    T: core::str::FromStr,
-    T::Err: core::fmt::Display,
-{
-    if let Expr::Lit(ExprLit {
-        lit: Lit::Int(lit), ..
-    }) = expr
-    {
-        lit.base10_parse::<T>()
-    } else {
-        Err(syn::Error::new_spanned(
-            expr,
-            format!("`{key}` must be an integer literal"),
-        ))
-    }
 }
 
 /// Parse `variants = [("Name", tlv_type = 0xNN), ...]`.
@@ -220,7 +205,7 @@ fn parse_variant_array(expr: &Expr) -> Result<Vec<VariantDef>> {
             };
 
             // Remaining elements: `key = value` assignments
-            let mut variant_tlv_type: Option<u8> = None;
+            let mut variant_tlv_type: Option<Expr> = None;
             for elem in iter {
                 let Expr::Assign(assign) = elem else {
                     return Err(syn::Error::new_spanned(
@@ -238,7 +223,7 @@ fn parse_variant_array(expr: &Expr) -> Result<Vec<VariantDef>> {
                 };
 
                 if path.path.is_ident("tlv_type") {
-                    variant_tlv_type = Some(parse_int_lit(&assign.right, "tlv_type")?);
+                    variant_tlv_type = Some((*assign.right).clone());
                 } else {
                     return Err(syn::Error::new_spanned(
                         path,
@@ -261,14 +246,14 @@ struct DeriveCtx<'a> {
     ident: &'a Ident,
     vis: &'a syn::Visibility,
     generics: &'a Generics,
-    tlv_length: Option<usize>,
+    tlv_length: Option<&'a Expr>,
 
     /// The inner type of a single-field tuple struct (if applicable).
     inner_ty: Option<&'a syn::Type>,
 }
 
 impl<'a> DeriveCtx<'a> {
-    fn new(input: &'a DeriveInput, attr: &TlvAttr) -> Self {
+    fn new(input: &'a DeriveInput, attr: &'a TlvAttr) -> Self {
         let inner_ty = match &input.data {
             syn::Data::Struct(data) => match &data.fields {
                 syn::Fields::Unnamed(fields) if fields.unnamed.len() == 1 => {
@@ -283,7 +268,7 @@ impl<'a> DeriveCtx<'a> {
             ident: &input.ident,
             vis: &input.vis,
             generics: &input.generics,
-            tlv_length: attr.tlv_length,
+            tlv_length: attr.tlv_length.as_ref(),
             inner_ty,
         }
     }
@@ -305,7 +290,7 @@ impl<'a> DeriveCtx<'a> {
     }
 
     /// Implement `TlvType` for the given target type with the specified TLV type byte.
-    fn impl_tlv_type(&self, target: &Ident, tlv_type: u8) -> TokenStream {
+    fn impl_tlv_type(&self, target: &Ident, tlv_type: &Expr) -> TokenStream {
         let (ig, tg, wc) = self.split_generics();
         quote! {
             impl #ig ::twine_tlv::TlvType for #target #tg #wc {
