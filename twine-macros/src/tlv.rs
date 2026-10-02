@@ -343,8 +343,8 @@ impl<'a> DeriveCtx<'a> {
         quote! {
             impl #ig ::twine_tlv::DecodeTlvUnchecked for #target #tg #wc {
                 fn decode_tlv_unchecked(buffer: impl AsRef<[u8]>) -> Self {
-                    use ::bytes::Buf as _;
                     use ::twine_tlv::GetTlvLength as _;
+                    use ::twine_tlv::__private::bytes::Buf as _;
                     let mut buffer = buffer.as_ref();
                     let _type_byte = buffer.get_u8();
                     let _len_byte = buffer.get_tlv_length();
