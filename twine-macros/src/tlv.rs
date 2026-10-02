@@ -268,7 +268,8 @@ impl<'a> DeriveCtx<'a> {
 
     /// Implement `TlvMetadata` for the given target type
     fn impl_tlv_metadata(&self, target: &Ident) -> TokenStream {
-        let (ig, tg, wc) = self.split_generics();
+        let (ig, tg, _) = self.split_generics();
+        let wc = self.where_with_bound(quote!(Self: ::twine_tlv::TlvType + ::twine_tlv::TlvLength));
         quote! {
             impl #ig ::twine_tlv::TlvMetadata for #target #tg #wc {}
         }
@@ -301,7 +302,8 @@ impl<'a> DeriveCtx<'a> {
     ///
     /// Delegates to `DecodeTlvValueUnchecked` for TLV value parsing.
     fn impl_decode_tlv_unchecked(&self, target: &Ident) -> TokenStream {
-        let (ig, tg, wc) = self.split_generics();
+        let (ig, tg, _) = self.split_generics();
+        let wc = self.where_with_bound(quote!(Self: ::twine_tlv::DecodeTlvValueUnchecked));
         quote! {
             impl #ig ::twine_tlv::DecodeTlvUnchecked for #target #tg #wc {
                 fn decode_tlv_unchecked(buffer: impl AsRef<[u8]>) -> Self {
@@ -318,7 +320,10 @@ impl<'a> DeriveCtx<'a> {
 
     /// Implement `TryEncodeTlv` for the given target type, delegating to `write_tlv`.
     fn impl_try_encode_tlv(&self, target: &Ident) -> TokenStream {
-        let (ig, tg, wc) = self.split_generics();
+        let (ig, tg, _) = self.split_generics();
+        let wc = self.where_with_bound(
+            quote!(Self: ::twine_tlv::TlvMetadata + ::twine_tlv::TryEncodeTlvValue),
+        );
         quote! {
             impl #ig ::twine_tlv::TryEncodeTlv for #target #tg #wc {
                 fn try_encode_tlv(&self, buffer: &mut [u8]) -> Result<usize, ::twine_tlv::TwineTlvError> {
@@ -363,6 +368,8 @@ impl<'a> DeriveCtx<'a> {
             }
         };
 
+        let meta_ref_wc = self.where_with_bound(quote!(#target #tg: ::twine_tlv::TlvLength));
+
         let const_meta_ref = if self.tlv_length.is_some() {
             let wc = self.where_with_bound(quote!(#target #tg: ::twine_tlv::TlvConstantMetadata));
             quote! {
@@ -382,7 +389,7 @@ impl<'a> DeriveCtx<'a> {
                 const TLV_TYPE: u8 = <#target #tg as ::twine_tlv::TlvType>::TLV_TYPE;
             }
 
-            impl #ig ::twine_tlv::TlvMetadata for &#target #tg #wc {}
+            impl #ig ::twine_tlv::TlvMetadata for &#target #tg #meta_ref_wc {}
 
             #const_meta_ref
         }
@@ -427,18 +434,21 @@ impl<'a> DeriveCtx<'a> {
     /// delegating to the inner base type.
     fn impl_variant_encode_decode(&self, variant_ident: &Ident) -> TokenStream {
         let base = self.ident;
-        let (ig, tg, wc) = self.split_generics();
+        let (ig, tg, _) = self.split_generics();
+        let encode_wc = self.where_with_bound(quote!(#base #tg: ::twine_tlv::TryEncodeTlvValue));
+        let decode_wc =
+            self.where_with_bound(quote!(#base #tg: ::twine_tlv::DecodeTlvValueUnchecked));
 
         quote! {
-            impl #ig ::twine_tlv::TryEncodeTlvValue for #variant_ident #tg #wc {
+            impl #ig ::twine_tlv::TryEncodeTlvValue for #variant_ident #tg #encode_wc {
                 fn try_encode_tlv_value(&self, buffer: &mut [u8]) -> Result<usize, ::twine_tlv::TwineTlvError> {
-                    self.0.try_encode_tlv_value(buffer)
+                    ::twine_tlv::TryEncodeTlvValue::try_encode_tlv_value(&self.0, buffer)
                 }
             }
 
-            impl #ig ::twine_tlv::DecodeTlvValueUnchecked for #variant_ident #tg #wc {
+            impl #ig ::twine_tlv::DecodeTlvValueUnchecked for #variant_ident #tg #decode_wc {
                 fn decode_tlv_value_unchecked(buffer: impl AsRef<[u8]>) -> Self {
-                    #variant_ident(<#base #tg>::decode_tlv_value_unchecked(buffer))
+                    #variant_ident(<#base #tg as ::twine_tlv::DecodeTlvValueUnchecked>::decode_tlv_value_unchecked(buffer))
                 }
             }
         }
