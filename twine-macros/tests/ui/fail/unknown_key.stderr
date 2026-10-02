@@ -1,0 +1,5 @@
+error: unknown #[tlv(...)] key, expected `tlv_type`, `tlv_length`, or `variants`
+  --> tests/ui/fail/unknown_key.rs:11:24
+   |
+11 | #[tlv(tlv_type = 0x01, bogus = 2)]
+   |                        ^^^^^

@@ -1,0 +1,5 @@
+error: expected a #[tlv(...)] attribute
+  --> tests/ui/fail/missing_attr.rs:11:8
+   |
+11 | struct Missing([u8; 1]);
+   |        ^^^^^^^

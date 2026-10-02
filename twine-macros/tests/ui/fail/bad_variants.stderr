@@ -1,0 +1,5 @@
+error: variants must be an array of tuples, e.g. [("Active", tlv_type = 0x0e), ("Pending", tlv_type = 0x33)]
+  --> tests/ui/fail/bad_variants.rs:11:18
+   |
+11 | #[tlv(variants = "nope")]
+   |                  ^^^^^^

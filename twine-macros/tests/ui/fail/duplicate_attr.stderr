@@ -1,0 +1,5 @@
+error: expected exactly one #[tlv(...)] attribute
+  --> tests/ui/fail/duplicate_attr.rs:12:1
+   |
+12 | #[tlv(tlv_type = 0x02)]
+   | ^^^^^^^^^^^^^^^^^^^^^^^

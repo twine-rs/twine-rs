@@ -1,0 +1,5 @@
+error: number too large to fit in target type
+  --> tests/ui/fail/tlv_type_overflow.rs:11:18
+   |
+11 | #[tlv(tlv_type = 0x1FF)]
+   |                  ^^^^^
