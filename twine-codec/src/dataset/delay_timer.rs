@@ -28,8 +28,9 @@ impl From<u32> for DelayTimer {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use core::time::Duration;
+
+    use super::*;
 
     #[test]
     fn duration_zero() {

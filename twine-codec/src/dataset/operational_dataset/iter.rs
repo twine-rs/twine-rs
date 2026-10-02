@@ -5,18 +5,16 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use twine_tlv::{DecodeTlvUnchecked, TlvCollection, TlvType};
-
 use crate::{
     dataset::{
+        operational_dataset::OPERATIONAL_DATASET_MAX_SIZE,
         timestamp::{ActiveTimestamp, PendingTimestamp},
         DelayTimer, ExtendedPanId, MeshLocalPrefix, NetworkKey, NetworkName, Pskc, SecurityPolicy,
     },
     radio::{Channel, PanId},
     ChannelMask,
 };
-
-use super::OPERATIONAL_DATASET_MAX_SIZE;
+use twine_tlv::{DecodeTlvUnchecked, TlvCollection, TlvType};
 
 macro_rules! decode_dataset_tlv_unchecked {
     ($tlv:expr, {

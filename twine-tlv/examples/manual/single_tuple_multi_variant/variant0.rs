@@ -1,8 +1,7 @@
 use bytes::Buf;
 
-use twine_tlv::prelude::*;
-
 use crate::single_tuple_multi_variant::SingleTupleMultiVariant;
+use twine_tlv::prelude::*;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct Variant0SingleTupleMultiVariant(SingleTupleMultiVariant);

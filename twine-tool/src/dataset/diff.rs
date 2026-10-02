@@ -7,9 +7,9 @@
 
 use anyhow::Result;
 use clap::Parser;
-use twine_codec::decode_operational_dataset_item;
 
 use super::parse;
+use twine_codec::decode_operational_dataset_item;
 
 #[derive(Debug, Parser)]
 #[command(about = "Show the difference between two Thread operational datasets")]

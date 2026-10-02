@@ -64,9 +64,8 @@ impl core::fmt::Display for ExtendedPanId {
 mod tests {
     use alloc::format;
 
-    use twine_tlv::prelude::*;
-
     use super::*;
+    use twine_tlv::prelude::*;
 
     const TEST_VALUE: u64 = 0x1122334455667788;
 

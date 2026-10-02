@@ -82,8 +82,9 @@ impl From<u16> for Components {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use std::sync::LazyLock;
+
+    use super::*;
 
     static ALL_COMPONENTS: LazyLock<Components> = LazyLock::new(|| {
         Components::ACTIVE

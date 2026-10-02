@@ -7,7 +7,6 @@
 
 #[cfg(any(test, feature = "alloc"))]
 use alloc::vec::Vec;
-
 use core::num::ParseIntError;
 use core::str::FromStr;
 
@@ -78,9 +77,9 @@ impl FromStr for NetworkKey {
 
 #[cfg(test)]
 mod tests {
+    use std::borrow::ToOwned;
+
     use super::*;
-    use crate::std::borrow::ToOwned;
-    extern crate alloc;
 
     const EXPECTED_KEY_STR: &str = "0123456789abcdef0123456789abcdef";
     const EXPECTED_KEY_U128: u128 = 0x0123_4567_89ab_cdef_0123_4567_89ab_cdef;

@@ -8,10 +8,9 @@
 use bytes::{Buf, BufMut};
 use typed_builder::TypedBuilder;
 
+use crate::error::TwineCodecError;
 use twine_rs_macros::Tlv;
 use twine_tlv::prelude::*;
-
-use crate::error::TwineCodecError;
 
 /// IEEE 802.15.4 channel
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq, Tlv, TypedBuilder)]

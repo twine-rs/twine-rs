@@ -7,10 +7,9 @@
 
 use core::str::FromStr;
 
+use crate::error::TwineCodecError;
 use twine_rs_macros::Tlv;
 use twine_tlv::prelude::*;
-
-use crate::error::TwineCodecError;
 
 const NETWORK_NAME_MAX_SIZE: usize = 16;
 
@@ -80,8 +79,8 @@ impl FromStr for NetworkName {
 
 #[cfg(test)]
 mod tests {
-    use crate::std::string::ToString;
     use alloc::format;
+    use std::string::ToString;
 
     use super::*;
 

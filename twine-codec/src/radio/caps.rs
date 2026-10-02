@@ -87,8 +87,9 @@ impl RadioCapabilities {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use std::sync::LazyLock;
+
+    use super::*;
 
     static ALL_CAPS: LazyLock<RadioCapabilities> = LazyLock::new(|| {
         RadioCapabilities::ACK_TIMEOUT

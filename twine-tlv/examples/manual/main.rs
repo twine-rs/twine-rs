@@ -16,7 +16,6 @@ use single_tuple::SingleTupleExampleData;
 use single_tuple_multi_variant::{
     Variant0SingleTupleMultiVariant, Variant1SingleTupleMultiVariant,
 };
-
 use variable_struct::VariableStruct;
 
 use crate::single_tuple_multi_variant::SingleTupleMultiVariant;

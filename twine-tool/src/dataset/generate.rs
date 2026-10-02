@@ -14,12 +14,12 @@ use std::{
 use anyhow::{bail, Context, Result};
 use clap::Parser;
 use serde::Deserialize;
+
+use super::parse;
 use twine_codec::{
     Channel, ChannelMask, DelayTimer, ExtendedPanId, MeshLocalPrefix, NetworkKey, NetworkName,
     OperationalDataset, PanId, Pskc,
 };
-
-use super::parse;
 
 #[derive(Debug, Parser)]
 #[command(about = "Generate a Thread operational dataset from JSON")]

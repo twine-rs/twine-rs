@@ -1,6 +1,5 @@
-use twine_tlv::prelude::*;
-
 use super::MultiExampleData;
+use twine_tlv::prelude::*;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct Variant0MultiExampleData(MultiExampleData);

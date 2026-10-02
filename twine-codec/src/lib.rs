@@ -20,18 +20,18 @@ mod rloc16;
 mod role;
 mod util;
 
-pub use dataset::{
+pub use crate::dataset::{
     decode_operational_dataset_item, ActiveTimestamp, Authoritative, Components, DelayTimer,
     ExtendedPanId, MeshLocalPrefix, NetworkKey, NetworkName, OperationalDataset,
     OperationalDatasetItem, PendingTimestamp, Pskc, SecurityPolicy, SecurityPolicyBuilder,
     Timestamp, VersionThreshold,
 };
-pub use error::TwineCodecError;
-pub use radio::{
+pub use crate::error::TwineCodecError;
+pub use crate::radio::{
     Channel, ChannelMask, ChannelPageMask, Eui64, ExtendedAddress, PanId, RadioCapabilities,
 };
-pub use rloc16::Rloc16;
-pub use role::NetworkRole;
+pub use crate::rloc16::Rloc16;
+pub use crate::role::NetworkRole;
+pub(crate) use crate::util::{fill_random_bytes, random_range_u16};
 #[cfg(any(test, feature = "alloc"))]
 pub use twine_tlv::TlvCollectionDiffEntry;
-pub(crate) use util::{fill_random_bytes, random_range_u16};

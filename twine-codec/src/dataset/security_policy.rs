@@ -6,7 +6,6 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::error::TwineCodecError;
-
 use twine_rs_macros::Tlv;
 
 pub enum VersionThreshold {

@@ -9,11 +9,11 @@ use core::str::FromStr;
 
 use bitflags::bitflags;
 use bytes::{Buf, BufMut};
-use twine_rs_macros::Tlv;
-use twine_tlv::prelude::*;
 use typed_builder::TypedBuilder;
 
 use crate::TwineCodecError;
+use twine_rs_macros::Tlv;
+use twine_tlv::prelude::*;
 
 bitflags! {
     /// IEEE 802.15.4 channel page mask

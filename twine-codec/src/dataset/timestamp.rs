@@ -75,7 +75,6 @@ impl From<(u64, u16, Authoritative)> for Timestamp {
 #[cfg(test)]
 mod tests {
     use super::*;
-
     use twine_tlv::TryEncodeTlv;
 
     #[test]

@@ -9,12 +9,12 @@ use std::str::FromStr;
 
 use anyhow::{Context, Result};
 use clap::Parser;
+
+use super::parse;
 use twine_codec::{
     Channel, ChannelMask, DelayTimer, ExtendedPanId, MeshLocalPrefix, NetworkKey, NetworkName,
     PanId, Pskc,
 };
-
-use super::parse;
 
 #[derive(Debug, Parser)]
 #[command(about = "Modify an existing operational dataset")]
