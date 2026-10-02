@@ -15,18 +15,18 @@ zbus = ["dep:zbus", "serde"]
 serde = ["dep:serde"]
 
 [dependencies]
-bitflags.workspace = true
 bitfield.workspace = true
+bitflags.workspace = true
 bytes.workspace = true
+getrandom = "0.3"
 hex = { workspace = true }
 log.workspace = true
+serde = { workspace = true, optional = true }
 thiserror.workspace = true
 twine-rs-macros = { version = "0.1", path = "../twine-macros" }
 twine-tlv = { version = "0.1", path = "../twine-tlv", default-features = false }
 typed-builder.workspace = true
-serde = { workspace = true, optional = true }
 zbus = { workspace = true, optional = true }
-getrandom = "0.3"
 
 [dev-dependencies]
 env_logger.workspace = true
