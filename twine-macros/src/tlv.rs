@@ -25,7 +25,6 @@ struct VariantDef {
 ///   `#[tlv(tlv_type = 0x04, tlv_length = PSKC_MAX_SIZE)]`
 ///   `#[tlv(tlv_type = 0x04)]`
 ///   `#[tlv(variants = [("Active", tlv_type = 0x0e), ("Pending", tlv_type = 0x33)], tlv_length = 8)]`
-///   `#[tlv(tlv_type = 0x04, derive_inner)]`
 struct TlvAttr {
     /// The TLV type byte for the base type, as a const expression.
     ///
@@ -44,9 +43,6 @@ struct TlvAttr {
     /// Each variant becomes a newtype wrapper around the base struct with its own TLV type byte.
     /// The first variant's `TLV_TYPE` is also used as the base type's `TLV_TYPE`.
     variants: Vec<VariantDef>,
-
-    /// Auto-derive `TryEncodeTlvValue` and `DecodeTlvValueUnchecked`
-    derive_inner: bool,
 }
 
 /// Generate all trait impls for `#[derive(Tlv)]`.
@@ -64,10 +60,6 @@ pub(crate) fn expand(input: &DeriveInput) -> Result<TokenStream> {
     tokens.extend(ctx.impl_try_encode_tlv(ctx.ident));
     tokens.extend(ctx.impl_ref_impls(ctx.ident));
 
-    if attr.derive_inner {
-        tokens.extend(ctx.impl_derive_inner(ctx.ident, /* is_variant */ false)?);
-    }
-
     // Variant wrapper types.
     for variant in &attr.variants {
         let variant_ident = Ident::new(&format!("{}{}", variant.name, ctx.ident), ctx.ident.span());
@@ -79,12 +71,7 @@ pub(crate) fn expand(input: &DeriveInput) -> Result<TokenStream> {
         tokens.extend(ctx.impl_decode_tlv_unchecked(&variant_ident));
         tokens.extend(ctx.impl_try_encode_tlv(&variant_ident));
         tokens.extend(ctx.impl_ref_impls(&variant_ident));
-
-        if attr.derive_inner {
-            tokens.extend(ctx.impl_derive_inner(&variant_ident, /* is_variant */ true)?);
-        } else {
-            tokens.extend(ctx.impl_variant_encode_decode(&variant_ident));
-        }
+        tokens.extend(ctx.impl_variant_encode_decode(&variant_ident));
     }
 
     Ok(tokens)
@@ -111,14 +98,9 @@ fn parse_tlv_attr(input: &DeriveInput) -> Result<TlvAttr> {
     let mut tlv_type: Option<Expr> = None;
     let mut tlv_length: Option<Expr> = None;
     let mut variants: Vec<VariantDef> = Vec::new();
-    let mut derive_inner = false;
 
     for meta in nested {
         match &meta {
-            // `derive_inner` (path-only, no value)
-            Meta::Path(path) if path.is_ident("derive_inner") => {
-                derive_inner = true;
-            }
             // `key = value` pairs
             Meta::NameValue(nv) => {
                 if nv.path.is_ident("tlv_type") {
@@ -137,7 +119,7 @@ fn parse_tlv_attr(input: &DeriveInput) -> Result<TlvAttr> {
             other => {
                 return Err(syn::Error::new_spanned(
                     other,
-                    "expected `derive_inner` or a `key = value` pair in #[tlv(...)]",
+                    "expected a `key = value` pair in #[tlv(...)]",
                 ));
             }
         }
@@ -156,7 +138,6 @@ fn parse_tlv_attr(input: &DeriveInput) -> Result<TlvAttr> {
         base_tlv_type,
         tlv_length,
         variants,
-        derive_inner,
     })
 }
 
@@ -247,29 +228,15 @@ struct DeriveCtx<'a> {
     vis: &'a syn::Visibility,
     generics: &'a Generics,
     tlv_length: Option<&'a Expr>,
-
-    /// The inner type of a single-field tuple struct (if applicable).
-    inner_ty: Option<&'a syn::Type>,
 }
 
 impl<'a> DeriveCtx<'a> {
     fn new(input: &'a DeriveInput, attr: &'a TlvAttr) -> Self {
-        let inner_ty = match &input.data {
-            syn::Data::Struct(data) => match &data.fields {
-                syn::Fields::Unnamed(fields) if fields.unnamed.len() == 1 => {
-                    Some(&fields.unnamed.first().unwrap().ty)
-                }
-                _ => None,
-            },
-            _ => None,
-        };
-
         Self {
             ident: &input.ident,
             vis: &input.vis,
             generics: &input.generics,
             tlv_length: attr.tlv_length.as_ref(),
-            inner_ty,
         }
     }
 
@@ -419,57 +386,6 @@ impl<'a> DeriveCtx<'a> {
 
             #const_meta_ref
         }
-    }
-
-    /// Delegate the value encode and decode traits to the inner field.
-    ///
-    /// Implements `TryEncodeTlvValue` and `DecodeTlvValueUnchecked` for a
-    /// single-field tuple struct by forwarding to that field.
-    fn impl_derive_inner(&self, target: &Ident, is_variant: bool) -> Result<TokenStream> {
-        let inner_ty = self.inner_ty.ok_or_else(|| {
-            syn::Error::new(
-                self.ident.span(),
-                "`derive_inner` requires a single-field tuple struct",
-            )
-        })?;
-        let (ig, tg, wc) = self.split_generics();
-        let base = self.ident;
-
-        let tokens = if is_variant {
-            // Variant wraps the base type, so the inner value is at `.0.0`.
-            quote! {
-                impl #ig ::twine_tlv::TryEncodeTlvValue for #target #tg #wc {
-                    fn try_encode_tlv_value(&self, buffer: &mut [u8]) -> Result<usize, ::twine_tlv::TwineTlvError> {
-                        self.0.0.try_encode_tlv_value(buffer)
-                    }
-                }
-
-                impl #ig ::twine_tlv::DecodeTlvValueUnchecked for #target #tg #wc {
-                    fn decode_tlv_value_unchecked(buffer: impl AsRef<[u8]>) -> Self {
-                        let inner: #inner_ty = ::twine_tlv::DecodeTlvValueUnchecked::decode_tlv_value_unchecked(buffer);
-                        #target(#base(inner))
-                    }
-                }
-            }
-        } else {
-            // Base type: delegate directly to `.0`.
-            quote! {
-                impl #ig ::twine_tlv::TryEncodeTlvValue for #target #tg #wc {
-                    fn try_encode_tlv_value(&self, buffer: &mut [u8]) -> Result<usize, ::twine_tlv::TwineTlvError> {
-                        self.0.try_encode_tlv_value(buffer)
-                    }
-                }
-
-                impl #ig ::twine_tlv::DecodeTlvValueUnchecked for #target #tg #wc {
-                    fn decode_tlv_value_unchecked(buffer: impl AsRef<[u8]>) -> Self {
-                        let inner: #inner_ty = ::twine_tlv::DecodeTlvValueUnchecked::decode_tlv_value_unchecked(buffer);
-                        #target(inner)
-                    }
-                }
-            }
-        };
-
-        Ok(tokens)
     }
 
     /// Implement the variant wrapper struct and `From` conversions to/from the base type.

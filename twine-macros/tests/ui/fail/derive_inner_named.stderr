@@ -1,5 +1,0 @@
-error: `derive_inner` requires a single-field tuple struct
-  --> tests/ui/fail/derive_inner_named.rs:12:8
-   |
-12 | struct Named {
-   |        ^^^^^
