@@ -7,11 +7,10 @@
 
 use core::{str::FromStr, time::Duration};
 
+use crate::{TwineCtl, TwineCtlError};
 use twine_codec::{
     Channel, ChannelMask, NetworkName, NetworkRole, OperationalDataset, PanId, Rloc16,
 };
-
-use crate::TwineCtlError;
 
 pub mod serial;
 
@@ -402,10 +401,83 @@ trait TwineCtlShell {
     }
 }
 
+/// Blanket `TwineCtl` impl for shell-backed interfaces.
+///
+/// Each trait method delegates to the corresponding `shell_*` method.
+#[async_trait::async_trait]
+impl<T> TwineCtl for T
+where
+    T: TwineCtlShell + Send,
+{
+    async fn new_random_network(&mut self) -> Result<(), TwineCtlError> {
+        self.shell_new_random_network().await
+    }
+
+    async fn active_dataset(&mut self) -> Result<OperationalDataset, TwineCtlError> {
+        self.shell_active_dataset().await
+    }
+
+    async fn attach_with_dataset(
+        &mut self,
+        dataset: &OperationalDataset,
+    ) -> Result<(), TwineCtlError> {
+        self.shell_attach_with_dataset(dataset).await
+    }
+
+    async fn pending_dataset(&mut self) -> Result<OperationalDataset, TwineCtlError> {
+        self.shell_pending_dataset().await
+    }
+
+    async fn channel(&mut self) -> Result<Channel, TwineCtlError> {
+        self.shell_channel().await
+    }
+
+    async fn preferred_channel_mask(&mut self) -> Result<ChannelMask, TwineCtlError> {
+        self.shell_preferred_channel_mask().await
+    }
+
+    async fn supported_channel_mask(&mut self) -> Result<ChannelMask, TwineCtlError> {
+        self.shell_supported_channel_mask().await
+    }
+
+    async fn factory_reset(&mut self) -> Result<(), TwineCtlError> {
+        self.shell_factory_reset().await
+    }
+
+    async fn network_name(&mut self) -> Result<NetworkName, TwineCtlError> {
+        self.shell_network_name().await
+    }
+
+    async fn pan_id(&mut self) -> Result<PanId, TwineCtlError> {
+        self.shell_pan_id().await
+    }
+
+    async fn reset(&mut self) -> Result<(), TwineCtlError> {
+        self.shell_reset().await
+    }
+
+    async fn rloc16(&mut self) -> Result<Rloc16, TwineCtlError> {
+        self.shell_rloc16().await
+    }
+
+    async fn role(&mut self) -> Result<NetworkRole, TwineCtlError> {
+        self.shell_role().await
+    }
+
+    async fn version(&mut self) -> Result<String, TwineCtlError> {
+        self.shell_version().await
+    }
+
+    async fn uptime(&mut self) -> Result<String, TwineCtlError> {
+        self.shell_uptime().await
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use super::*;
     use std::collections::VecDeque;
+
+    use super::*;
 
     struct MockShell {
         lines: VecDeque<Option<String>>,
